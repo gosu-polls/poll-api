@@ -1,0 +1,7 @@
+*secret*
+.env
+.polls_env
+.devcontainer
+
+__pycache__/
+sample.json
