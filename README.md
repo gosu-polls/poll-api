@@ -6,7 +6,7 @@ This serves as an API for the Polls application. To get this app running, please
 # Clone the repository
 git clone this respository 
 
-`cd polls-api`
+`cd poll-api`
 
 # Prerequisites
 We need to have python version >= 3.9.12. This can be installed from [here](https://www.python.org/downloads/release/python-3917/)
@@ -41,7 +41,7 @@ Once the environment is created, we have to activate it using the following comm
 ## Install the dependencies
 Once the virtual env is activated, we will now install the dependencies. This will ensure that the dependencies are installed only inside the .polls_env environment. Install the dependencies using the following command
 
-pip install -r ./requirements.txt
+`pip install -r ./requirements.txt`
 
 # Environment Variables
 We need the following env variables to be set. But they are currently have sensistive details and hence the data is not checked into git. So create a file called `.env` under the `poll-api` folder. Remember to have a `.` infront of the file. Also, this `.env` is already included in our `.gitignore` and the file will not be checked into the repositoryt. 
@@ -61,7 +61,7 @@ We need the following env variables to be set. But they are currently have sensi
 
 
 # Run the API
-Run the APU using the following command
+Run the API using the following command
 
 `python ./app/main.py `
 
