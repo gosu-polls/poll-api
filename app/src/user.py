@@ -34,5 +34,5 @@ def get_user(request: Request) -> dict:
         
         user = [u for u in usersList if u['email'] == email]
         # print(user)
-    return user
+    return user[0]
     

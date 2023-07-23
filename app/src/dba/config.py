@@ -1,0 +1,2 @@
+cwc_static = '1RIM72Xkp2siZCesqCXu9JFoZjn5ZxZIUPwXMYSxYBqY'
+poll_db = '18GFaNSn8925p33HNsPwOk1yDanx9zF1mFxUokQH6W4M'

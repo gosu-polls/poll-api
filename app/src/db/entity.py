@@ -1,6 +1,7 @@
 from src.dbutil.dbconn import DBConn
-
+import pandas as pd
 class Entity:
+    _instance = None
     _dbInstance = None
     _dbInstanceMap = {}
     _cache = {}
@@ -40,7 +41,47 @@ class Entity:
         cls._df = cls._dbInstanceMap[cls._db_type].ReadData(identifier = cls._entity_identifier,
                                                             filters = cls._filters)
         
+        # print(f'Primed Data: {type(cls._df)}')
         cls._updateCache(cls._entity_identifier['key'])
+
+    @classmethod
+    def GetData(cls) -> dict:
+        try:
+            if not cls._isCached():
+                cls._primeData()
+            # print(f'Cached Data: {type(cls._df)}')
+            return cls._df.to_dict("records")
+        except Exception as err:
+            return {"exception": err}
+
+    @classmethod
+    def GetDatum(cls, id) -> dict:
+        try:
+            if not cls._isCached():
+                cls._primeData()
+            return cls._df[cls._df[cls._entity_identifier['pk'] if 'pk' in cls._entity_identifier else 'id'] == id].to_dict("records")
+        except Exception as err:
+            return {"exception": err}
+
+    @classmethod
+    def GetNextId(cls) -> int:
+        return cls._df[cls._entity_identifier['pk']].max() + 1
+    
+    @classmethod
+    def AppendData(cls, data: dict) -> dict:
+        new_row = pd.DataFrame(data, index=[0])
+        # print(new_row)
+        cls._df = pd.concat([cls._df, new_row], ignore_index=True)
+        print(f'appended data is {cls._df}')
+        cls.WriteData()
+
+    @classmethod
+    def WriteData(cls) -> dict:
+        try:
+            cls._dbInstanceMap[cls._db_type].WriteData(identifier = cls._entity_identifier, data=cls._df)
+        except Exception as err:
+            print(err)
+            return{"exception": err}
 
     @classmethod
     def ResetCache(cls):

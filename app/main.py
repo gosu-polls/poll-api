@@ -2,16 +2,16 @@ from fastapi import FastAPI, Request
 from requests import request
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
-import src.polls
 import src.auth.auth as auth
 import json
 import jwt
-import src.polls as polls
+import src.pollsmain as pollsmain
 # from src.db.student import Student as Student
 from src.db.cwc.gsheet.match import Match as Match
 from src.db.cwc.gsheet.country import Country as Country
 from src.db.cwc.cosmos.country_v2 import Country as Country_v2
 from src.db.cwc.cosmos.user import User as User
+from src.db.poll.gsheet.group import Group as Group
 import functools
 from dotenv import load_dotenv
 
@@ -83,7 +83,7 @@ def get_users() -> dict:
 @app.get("/matches")
 def get_matches() -> dict:
     try:
-        data = Match().GetMatches()
+        data = Match().GetData()
         return {"data": data}
     except Exception as err:
         return {"exception": err}
@@ -91,7 +91,7 @@ def get_matches() -> dict:
 @app.get("/matches/{id}")
 async def get_match(id : int) -> dict:
     try:
-        data = Match().GetMatch(id)
+        data = Match().GetDatum(id)
         return {"data": data}
     except Exception as err:
         return {"exception": err}
@@ -107,7 +107,7 @@ def get_countries_v2() -> dict:
 @app.get("/countries")
 def get_countries() -> dict:
     try:
-        data = Country().GetCountries()
+        data = Country().GetData()
         return {"data": data}
     except Exception as err:
         return {"exception": err}
@@ -115,19 +115,40 @@ def get_countries() -> dict:
 @app.get("/countries/{id}")
 async def get_match(id : int) -> dict:
     try:
-        data = Country().GetCountry(id)
+        data = Country().GetDatum(id)
         return {"data": data}
     except Exception as err:
         return {"exception": err}
-    
+
+@app.get("/availablepolls")
+def get_available_polls(request: Request) -> dict:
+    data = pollsmain.get_available_polls(request)
+    return data
+
+# @app.get("/groups")
+# def get_available_polls(request: Request) -> dict:
+#     data = Group().GetData()
+#     return {"data": data}
+
+# @app.get("/groups/{id}")
+# def get_available_polls(request: Request, id: int) -> dict:
+#     data = Group().GetDatum(id)
+#     return {"data": data}
+
+@app.post("/creategroup")
+def create_group(request: Request, body: dict) -> dict:
+    data = pollsmain.create_group(request, body)
+    return data
+
+
 @app.get("/poll")
 def get_poll(request: Request) -> dict:
-    data = polls.get_active_poll(request)
+    data = pollsmain.get_active_poll(request)
     return data
 
 @app.get("/pollhistory")
 def get_poll_history(request: Request) -> dict:
-    data = polls.get_poll_history(request)
+    data = pollsmain.get_poll_history(request)
     return data
 
 @app.post("/login")

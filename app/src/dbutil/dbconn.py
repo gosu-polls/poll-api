@@ -11,13 +11,3 @@ class DBConn():
             return cls._dbInstanceMap[db_type]
         except:
             return None
-        # try:
-        #     if cls._dbInstance is None:
-        #         cls._dbInstance = GoogleSheet()
-        #     return cls._dbInstance
-        # except:
-        #     return None
-        
-    # @property
-    # def dbInstance(self):
-    #     return self._dbInstance

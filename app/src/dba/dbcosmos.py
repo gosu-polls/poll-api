@@ -88,7 +88,9 @@ class CosmosDb:
         container = cls.CreateContainer(identifier['container_name'])
         container.create_item(body=data)
 
-
+    @classmethod
+    def WriteData(cls, identifier: dict = {}, data = pd.DataFrame):
+        pass
 
 # ----------------------------------------------------------------------------------------------------------
 # Prerequistes -
