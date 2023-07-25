@@ -2,10 +2,12 @@ import functools
 import json
 import jwt
 from fastapi import Request
-from src.db.poll.gsheet.group import Group as Group
-from src.db.poll.gsheet.poll import Poll as Poll
+from src.database.db.poll.gsheet.group import Group as Group
+from src.database.db.poll.gsheet.group_detail import Group_Detail as Group_Detail
+from src.database.db.poll.gsheet.poll import Poll as Poll
 import src.user as user
 import uuid
+from datetime import datetime
 class polls():
     def init():
         pass
@@ -37,9 +39,12 @@ def get_available_polls(request: Request) -> dict:
         data = Poll().GetData()
     return {'data': data}
 
-# def _get_groups()-> dict:
-#     data = Group().GetData()
-#     return data
+# def get_my_groups(request: Request) -> dict:
+#     u = user.get_user(request)
+#     data = []
+#     if u != None:
+#         groups = Group().GetData()
+#     return {'data': data}
 
 def get_groups_admin(request: Request) -> dict:
     u = user.get_user(request)
@@ -57,35 +62,36 @@ def create_group(request: Request, body: dict) -> dict:
     u = user.get_user(request)
     data = []
     if u != None:
+        # print(u)
         groups = Group().GetData()
-        # print(groups)
-        # print(f'body is {body}')
-        # print(body['group_name'])
-        # [{'group_id': 1, 'group_name': 'bunch', 'group_code': '', 'group_admin': 'kirankumar.gosu@gmail.com'}, 
-        #  {'group_id': 2, 'group_name': 'mrit', 'group_code': '', 'group_admin': 'jamozhi08@gmail.com'}]
-
-        # {'available_poll': {'id': 122, 'poll_name': 'CWC'}, 'group_name': 'm'}
-        if (body['group_name'] in [g['group_name'] for g in groups if g['group_admin'] == u]):
+        if (body['group_name'] in [g['group_name'] for g in groups if g['group_admin'] == u['email']]):
+            print('Group Name already exists')
             data.append('Group Name already exists')
         else:
             group_code = uuid.uuid4().hex
-            new_group = {'group_id': Group().GetNextId(),
+            group_id = Group().GetNextId()
+            new_group = {'group_id': group_id,
                          'group_name': body['group_name'],
                          'group_code': group_code,
                          'group_admin': u['email'],
                          'poll_id': body['available_poll']['poll_id']
                         }
-            # print(new_group)
-            Group().AppendData(new_group)
-            # Group().WriteData()
-        # if body['group_name'] in [g]
+            Group().AddData(new_group)
+            group_detail_id = Group_Detail().GetNextId()
+            # group_detail_id	group_id	email	joined_on
+            new_group_detail = {'group_detail_id' : group_detail_id,
+                                'group_id': group_id,
+                                'email': u['email'],
+                                'joined_on': datetime.now().strftime("%Y-%m-%d %H%M%S")
+                                }
+            Group_Detail().AddData(new_group_detail)
+            
     return {'data': data}
 
 def get_active_poll(request: Request) -> dict:
     u = user.get_user(request)
     data = {}
     if u != None:
-        
         data = {'poll_no' : 4,
                 'question' : 'India vs Australia',
                 'options' : [

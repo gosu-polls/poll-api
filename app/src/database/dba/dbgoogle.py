@@ -58,18 +58,14 @@ class GoogleSheet:
     @classmethod
     def WriteData(cls, identifier: dict = {}, data = pd.DataFrame):
         try:
-            print('1')
             spreadsheet = cls._conn.open_by_key(identifier['db_name'])
-            print('2')
             worksheet = spreadsheet.worksheet(identifier['table_name'] if 'table_name' in identifier else 'Sheet1')
-            print('3')
             worksheet.clear()
             set_with_dataframe(worksheet=worksheet, 
                                dataframe=data, 
                                include_index=False,
                                include_column_header=True, 
                                resize=True)
-            print('4')
         except Exception as err:
             print(err)
             raise

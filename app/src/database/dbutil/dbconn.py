@@ -1,5 +1,5 @@
-from src.dba.dbgoogle import GoogleSheet
-from src.dba.dbcosmos import CosmosDb
+from src.database.dba.dbgoogle import GoogleSheet
+from src.database.dba.dbcosmos import CosmosDb
 
 class DBConn():
     _dbInstanceMap = {}

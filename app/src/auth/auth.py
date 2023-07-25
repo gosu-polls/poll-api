@@ -1,6 +1,8 @@
 import requests
 import jwt
-from src.db.cwc.cosmos.user import User as User
+from datetime import datetime
+
+from src.database.db.poll.gsheet.user import User as User
 
 def handle_user(user : dict) -> dict:
     headers = {'Authorization': 'Bearer' + user['user']['access_token'],
@@ -10,16 +12,19 @@ def handle_user(user : dict) -> dict:
     encoded_jwt = jwt.encode(payload = {"email": response.json()['email']}, 
                              key = "secret", 
                              algorithm="HS256")
-    userdata = response.json()
-    userdata['jwt'] = encoded_jwt
-    # print(userdata)
+    userData = response.json()
+    userData['jwt'] = encoded_jwt
 
-    # {'id': '117242629996049838225', 
-    #  'email': 'kirankumar.gosu@gmail.com', 
-    #  'verified_email': True, 
-    #  'name': 'Kiran Gosu', 
-    #  'given_name': 'Kiran', 
-    #  'family_name': 'Gosu', 
-    #  'picture': 'https://lh3.googleusercontent.com/a/AAcHTtebPZq-IT9DjR2sQJP5Yl2ziMSbqR01tawoINV4HFNu2paO=s96-c', 'locale': 'en-GB', 'jwt': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImtpcmFua3VtYXIuZ29zdUBnbWFpbC5jb20ifQ.-A4p8lFWslLUEAX37Yvr6m1bBhRgEQOtwnWaNBKtG5g'}
-    User().AddUser(userdata)
-    return userdata
+    users = User().GetData()
+    if (userData['email'] in [u['email'] for u in users]):
+        set_clause = {'last_logged_on': datetime.now().strftime("%Y-%m-%d %H%M%S")}
+        where_clause = {'email': userData['email']}
+        User().UpdateData(set_clause=set_clause, where_clause=where_clause)
+    else:
+        new_user = {'user_id': User().GetNextId(),
+                    'email': userData['email'],
+                    'joined_on': datetime.now().strftime("%Y-%m-%d %H%M%S"),
+                    'last_logged_on': datetime.now().strftime("%Y-%m-%d %H%M%S")
+                   }
+        User().AppendData(new_user)
+    return userData

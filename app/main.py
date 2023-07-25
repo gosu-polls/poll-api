@@ -7,11 +7,11 @@ import json
 import jwt
 import src.pollsmain as pollsmain
 # from src.db.student import Student as Student
-from src.db.cwc.gsheet.match import Match as Match
-from src.db.cwc.gsheet.country import Country as Country
-from src.db.cwc.cosmos.country_v2 import Country as Country_v2
-from src.db.cwc.cosmos.user import User as User
-from src.db.poll.gsheet.group import Group as Group
+from src.database.db.cwc.gsheet.match import Match as Match
+from src.database.db.cwc.gsheet.country import Country as Country
+from src.database.db.cwc.cosmos.country_v2 import Country as Country_v2
+from src.database.db.cwc.cosmos.user import User as User
+from src.database.db.poll.gsheet.group import Group as Group
 import functools
 from dotenv import load_dotenv
 
@@ -123,6 +123,11 @@ async def get_match(id : int) -> dict:
 @app.get("/availablepolls")
 def get_available_polls(request: Request) -> dict:
     data = pollsmain.get_available_polls(request)
+    return data
+
+@app.get("/mygroups")
+def get_available_polls(request: Request) -> dict:
+    data = pollsmain.get_groups_admin(request)
     return data
 
 # @app.get("/groups")

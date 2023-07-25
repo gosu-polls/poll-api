@@ -1,5 +1,7 @@
-from src.dbutil.dbconn import DBConn
+from src.database.dbutil.dbconn import DBConn
 import pandas as pd
+import numpy as np
+
 class Entity:
     _instance = None
     _dbInstance = None
@@ -65,14 +67,26 @@ class Entity:
 
     @classmethod
     def GetNextId(cls) -> int:
-        return cls._df[cls._entity_identifier['pk']].max() + 1
+        return 1 if cls._df is None or len(cls._df) == 0 else cls._df[cls._entity_identifier['pk']].max() + 1
     
     @classmethod
-    def AppendData(cls, data: dict) -> dict:
+    def AddData(cls, data: dict) -> dict:
         new_row = pd.DataFrame(data, index=[0])
-        # print(new_row)
         cls._df = pd.concat([cls._df, new_row], ignore_index=True)
-        print(f'appended data is {cls._df}')
+        cls.WriteData()
+
+    @classmethod
+    def UpdateData(cls, set_clause: dict, where_clause: dict = None) -> dict:
+        # Assumption is we have one where clause
+        k = ''
+        v = ''
+        if (len(where_clause) > 0):
+            k = list(where_clause.keys())[0]
+            v = where_clause[k]
+        
+        for s in set_clause:
+            cls._df.loc[cls._df[k] == v, s] = set_clause[s]
+        
         cls.WriteData()
 
     @classmethod
@@ -91,8 +105,8 @@ class Entity:
         except Exception as err:
             return {"exception": err}
 
-    @classmethod
-    def _addData(cls, data):
-        print(cls._entity_identifier)
-        cls._dbInstanceMap[cls._db_type].AddData(identifier = cls._entity_identifier, data = data)
-        print(data)
+    # @classmethod
+    # def _addData(cls, data):
+    #     print(cls._entity_identifier)
+    #     cls._dbInstanceMap[cls._db_type].AddData(identifier = cls._entity_identifier, data = data)
+    #     print(data)

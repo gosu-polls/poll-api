@@ -1,7 +1,7 @@
-from src.db.entity import Entity
-import src.dba.config as config
+from src.database.db.entity import Entity
+import src.database.dba.config as config
 
-class Poll(Entity):
+class Group(Entity):
 
     def __new__(cls):
         try:

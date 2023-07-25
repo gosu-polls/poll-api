@@ -32,7 +32,7 @@ def get_user(request: Request) -> dict:
         if len(usersList) == 0:
             prime_users()
         
-        user = [u for u in usersList if u['email'] == email]
-        # print(user)
-    return user[0]
+        userList = [u for u in usersList if u['email'] == email]
+        user = userList[0]
+    return user
     

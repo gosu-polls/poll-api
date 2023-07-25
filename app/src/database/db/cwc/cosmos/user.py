@@ -1,4 +1,4 @@
-from src.db.entity import Entity
+from src.database.db.entity import Entity
 import os
 
 class User(Entity):
