@@ -89,7 +89,7 @@ def get_matches() -> dict:
         return {"exception": err}
     
 @app.get("/matches/{id}")
-async def get_match(id : int) -> dict:
+def get_match(id : int) -> dict:
     try:
         data = Match().GetDatum(id)
         return {"data": data}
@@ -113,7 +113,7 @@ def get_countries() -> dict:
         return {"exception": err}
     
 @app.get("/countries/{id}")
-async def get_match(id : int) -> dict:
+def get_match(id : int) -> dict:
     try:
         data = Country().GetDatum(id)
         return {"data": data}
@@ -145,6 +145,10 @@ def create_group(request: Request, body: dict) -> dict:
     data = pollsmain.create_group(request, body)
     return data
 
+@app.post("/joingroup")
+def join_group(request: Request, body: dict) -> dict:
+    data = pollsmain.join_group(request, body)
+    return data
 
 @app.get("/poll")
 def get_poll(request: Request) -> dict:

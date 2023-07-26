@@ -65,8 +65,8 @@ def create_group(request: Request, body: dict) -> dict:
         # print(u)
         groups = Group().GetData()
         if (body['group_name'] in [g['group_name'] for g in groups if g['group_admin'] == u['email']]):
-            print('Group Name already exists')
-            data.append('Group Name already exists')
+            print('Group already exists')
+            data.append('Group already exists')
         else:
             group_code = uuid.uuid4().hex
             group_id = Group().GetNextId()
@@ -85,7 +85,35 @@ def create_group(request: Request, body: dict) -> dict:
                                 'joined_on': datetime.now().strftime("%Y-%m-%d %H%M%S")
                                 }
             Group_Detail().AddData(new_group_detail)
+            data.append('Group Created')
             
+    return {'data': data}
+
+def join_group(request: Request, body: dict) -> dict:
+    u = user.get_user(request)
+    data = []
+    if u != None:
+        groups = Group().GetData()
+        requested_group = [g['group_id'] for g in groups if g['group_code'] == body['group_code']]
+        if len(requested_group) == 0:
+            print('Invalid Group Code')
+            data.append('Invalid Group Code')
+        else:
+            requested_group_id = requested_group[0]
+            print(requested_group_id)
+            group_detail = Group_Detail().GetData()
+            # reequest_group_detail = [g for g in group_detail if g['group_id'] == requested_group_id and g['email'] == u['email']]
+            if len([g for g in group_detail if g['group_id'] == requested_group_id and g['email'] == u['email']]) > 0:
+                data.append('User already part of Group')
+            else:
+                new_group_detail = {'group_detail_id' : Group_Detail().GetNextId(),
+                                    'group_id': requested_group_id,
+                                    'email': u['email'],
+                                    'joined_on': datetime.now().strftime("%Y-%m-%d %H%M%S")
+
+                }
+                Group_Detail.AddData(new_group_detail)
+                data.append('User added to the Group')
     return {'data': data}
 
 def get_active_poll(request: Request) -> dict:

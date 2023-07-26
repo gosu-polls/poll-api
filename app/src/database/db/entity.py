@@ -1,7 +1,8 @@
 from src.database.dbutil.dbconn import DBConn
 import pandas as pd
-import numpy as np
-
+from threading import Lock
+read_mutex = Lock()
+write_mutex = Lock()
 class Entity:
     _instance = None
     _dbInstance = None
@@ -15,7 +16,8 @@ class Entity:
     def __new__(cls, db_type):
         # cls._dbInstance = DBConn(db_type)
         cls._db_type = db_type
-        cls._dbInstance = DBConn(db_type)
+        # cls._dbInstance = DBConn(db_type)
+        print(f'Requesting DBConn for {db_type}')
         cls._dbInstanceMap[db_type] = DBConn(db_type)
         try:
             if cls._instance is None:
@@ -39,19 +41,17 @@ class Entity:
 
     @classmethod
     def _primeData(cls):
-        print(f"Priming [{cls._entity_identifier['key']}]")
-        cls._df = cls._dbInstanceMap[cls._db_type].ReadData(identifier = cls._entity_identifier,
-                                                            filters = cls._filters)
-        
-        # print(f'Primed Data: {type(cls._df)}')
-        cls._updateCache(cls._entity_identifier['key'])
+        with read_mutex:
+            if not cls._isCached():
+                print(f"Priming [{cls._entity_identifier['key']}]")
+                cls._df = cls._dbInstanceMap[cls._db_type].ReadData(identifier = cls._entity_identifier,
+                                                                    filters = cls._filters)
+                cls._updateCache(cls._entity_identifier['key'])
 
     @classmethod
     def GetData(cls) -> dict:
         try:
-            if not cls._isCached():
-                cls._primeData()
-            # print(f'Cached Data: {type(cls._df)}')
+            cls._primeData()
             return cls._df.to_dict("records")
         except Exception as err:
             return {"exception": err}
@@ -59,8 +59,7 @@ class Entity:
     @classmethod
     def GetDatum(cls, id) -> dict:
         try:
-            if not cls._isCached():
-                cls._primeData()
+            cls._primeData()
             return cls._df[cls._df[cls._entity_identifier['pk'] if 'pk' in cls._entity_identifier else 'id'] == id].to_dict("records")
         except Exception as err:
             return {"exception": err}
@@ -91,12 +90,21 @@ class Entity:
 
     @classmethod
     def WriteData(cls) -> dict:
-        try:
-            cls._dbInstanceMap[cls._db_type].WriteData(identifier = cls._entity_identifier, data=cls._df)
-        except Exception as err:
-            print(err)
-            return{"exception": err}
+        with write_mutex:
+            try:
+                cls._dbInstanceMap[cls._db_type].WriteData(identifier = cls._entity_identifier, data=cls._df)
+            except Exception as err:
+                print(err)
+                return{"exception": err}
 
+    # @classmethod
+    # def _performIO(cls, mode) -> dict:
+    #     with mutex:
+    #         if mode == 'r':
+    #             pass
+    #         elif mode == 'w':
+    #             pass
+    
     @classmethod
     def ResetCache(cls):
         try:

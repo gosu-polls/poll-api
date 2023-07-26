@@ -12,7 +12,7 @@ class Poll(Entity):
                                           'db_type' : 'googlesheet',
                                           'db_name': config.poll_db,
                                           'table_name': __class__.__name__.lower()}
-                # cls._filters = {'student_isactive': 'Y'}
+                cls._filters = {'is_active': 'Y'}
             return cls._instance
         except:
             return None
