@@ -130,16 +130,6 @@ def get_available_polls(request: Request) -> dict:
     data = pollsmain.get_groups_admin(request)
     return data
 
-# @app.get("/groups")
-# def get_available_polls(request: Request) -> dict:
-#     data = Group().GetData()
-#     return {"data": data}
-
-# @app.get("/groups/{id}")
-# def get_available_polls(request: Request, id: int) -> dict:
-#     data = Group().GetDatum(id)
-#     return {"data": data}
-
 @app.post("/creategroup")
 def create_group(request: Request, body: dict) -> dict:
     data = pollsmain.create_group(request, body)

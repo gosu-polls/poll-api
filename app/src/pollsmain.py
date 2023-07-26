@@ -39,14 +39,7 @@ def get_available_polls(request: Request) -> dict:
         data = Poll().GetData()
     return {'data': data}
 
-# def get_my_groups(request: Request) -> dict:
-#     u = user.get_user(request)
-#     data = []
-#     if u != None:
-#         groups = Group().GetData()
-#     return {'data': data}
-
-def get_groups_admin(request: Request) -> dict:
+def _get_my_groups(request: Request) -> list:
     u = user.get_user(request)
     data = []
     if u != None:
@@ -55,6 +48,14 @@ def get_groups_admin(request: Request) -> dict:
         if header != None:
             email = jwt.decode(header['jwt'], 'secret', 'HS256')['email']
             data = [g for g in groups if g['group_admin'] == email]
+
+    return data
+
+def get_groups_admin(request: Request) -> dict:
+    u = user.get_user(request)
+    data = []
+    if u != None:
+        data = _get_my_groups(request)
 
     return {'data': data}
 
@@ -85,7 +86,8 @@ def create_group(request: Request, body: dict) -> dict:
                                 'joined_on': datetime.now().strftime("%Y-%m-%d %H%M%S")
                                 }
             Group_Detail().AddData(new_group_detail)
-            data.append('Group Created')
+            data = _get_my_groups(request)
+            # data.append('Group Created')
             
     return {'data': data}
 

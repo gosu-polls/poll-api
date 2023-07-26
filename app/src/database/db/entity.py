@@ -66,16 +66,19 @@ class Entity:
 
     @classmethod
     def GetNextId(cls) -> int:
+        cls._primeData()
         return 1 if cls._df is None or len(cls._df) == 0 else cls._df[cls._entity_identifier['pk']].max() + 1
     
     @classmethod
     def AddData(cls, data: dict) -> dict:
         new_row = pd.DataFrame(data, index=[0])
+        cls._primeData()
         cls._df = pd.concat([cls._df, new_row], ignore_index=True)
         cls.WriteData()
 
     @classmethod
     def UpdateData(cls, set_clause: dict, where_clause: dict = None) -> dict:
+        cls._primeData()
         # Assumption is we have one where clause
         k = ''
         v = ''
