@@ -102,7 +102,7 @@ def join_group(request: Request, body: dict) -> dict:
             data.append('Invalid Group Code')
         else:
             requested_group_id = requested_group[0]
-            print(requested_group_id)
+            # print(requested_group_id)
             group_detail = Group_Detail().GetData()
             # reequest_group_detail = [g for g in group_detail if g['group_id'] == requested_group_id and g['email'] == u['email']]
             if len([g for g in group_detail if g['group_id'] == requested_group_id and g['email'] == u['email']]) > 0:
