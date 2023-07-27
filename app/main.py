@@ -140,6 +140,11 @@ def join_group(request: Request, body: dict) -> dict:
     data = pollsmain.join_group(request, body)
     return data
 
+@app.get("/participatingpolls")
+def get_participating_polls(request: Request) -> dict:
+    data = pollsmain.get_participating_polls(request)
+    return data
+
 @app.get("/poll")
 def get_poll(request: Request) -> dict:
     data = pollsmain.get_active_poll(request)

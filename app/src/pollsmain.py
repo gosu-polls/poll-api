@@ -118,6 +118,22 @@ def join_group(request: Request, body: dict) -> dict:
                 data.append('User added to the Group')
     return {'data': data}
 
+def get_participating_polls(request: Request) -> dict:
+    u = user.get_user(request)
+    data = {}
+    if u != None:
+        # For the given email, get the group_id from group_detail
+        # For each group_id, get the poll_id from group
+        # For each poll_id get poll data from poll
+        group_detail = Group_Detail().GetData()
+        group = Group().GetData()
+        poll = Poll().GetData()
+        data = [p for p in poll if p['poll_id'] in 
+                    [g['poll_id'] for g in group if g['group_id'] in 
+                        [gd['group_id'] for gd in group_detail if gd['email'] == u['email']]]
+               ]
+    return {'data': data}
+
 def get_active_poll(request: Request) -> dict:
     u = user.get_user(request)
     data = {}
