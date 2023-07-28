@@ -72,13 +72,13 @@ def read_root():
 #     header = json.loads(my_header)
 #     return src.polls.get_active_poll()
 
-@app.get("/users")
-def get_users() -> dict:
-    try:
-        data = User().GetUsers()
-        return {"data": data}
-    except Exception as err:
-        return {"exception": err}
+# @app.get("/users")
+# def get_users() -> dict:
+#     try:
+#         data = User().GetUsers()
+#         return {"data": data}
+#     except Exception as err:
+#         return {"exception": err}
 
 @app.get("/matches")
 def get_matches() -> dict:

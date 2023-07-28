@@ -26,5 +26,5 @@ def handle_user(user : dict) -> dict:
                     'joined_on': datetime.now().strftime("%Y-%m-%d %H%M%S"),
                     'last_logged_on': datetime.now().strftime("%Y-%m-%d %H%M%S")
                    }
-        User().AppendData(new_user)
+        User().AddData(new_user)
     return userData

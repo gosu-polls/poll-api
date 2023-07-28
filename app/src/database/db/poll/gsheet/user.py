@@ -1,5 +1,8 @@
 from src.database.db.entity import Entity
 import src.database.dba.config as config
+from fastapi import Request
+import json
+import jwt
 
 class User(Entity):
 
@@ -16,3 +19,16 @@ class User(Entity):
             return cls._instance
         except:
             return None
+
+    def GetUser(cls, request: Request) -> dict:
+        header = json.loads(request.headers.get('Token'))
+        user = None
+        if header != None:
+            
+            email = jwt.decode(header['jwt'], 'secret', 'HS256')['email']
+
+            users = cls.GetData()
+            userList = [u for u in users if u['email'] == email]
+            user = userList[0]
+
+        return user

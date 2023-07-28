@@ -5,9 +5,11 @@ from fastapi import Request
 from src.database.db.poll.gsheet.group import Group as Group
 from src.database.db.poll.gsheet.group_detail import Group_Detail as Group_Detail
 from src.database.db.poll.gsheet.poll import Poll as Poll
-import src.user as user
+from src.database.db.poll.gsheet.user import User as User
+# import src.user as user
 import uuid
 from datetime import datetime
+
 class polls():
     def init():
         pass
@@ -33,14 +35,16 @@ def login_required(func):
     return wrapper
 
 def get_available_polls(request: Request) -> dict:
-    u = user.get_user(request)
+    # u = user.get_user(request)
+    u = User().GetUser(request)
     data = []
     if u != None:
         data = Poll().GetData()
     return {'data': data}
 
 def _get_my_groups(request: Request) -> list:
-    u = user.get_user(request)
+    # u = user.get_user(request)
+    u = User().GetUser(request)
     data = []
     if u != None:
         groups = Group().GetData()
@@ -52,7 +56,8 @@ def _get_my_groups(request: Request) -> list:
     return data
 
 def get_groups_admin(request: Request) -> dict:
-    u = user.get_user(request)
+    # u = user.get_user(request)
+    u = User().GetUser(request)
     data = []
     if u != None:
         data = _get_my_groups(request)
@@ -60,7 +65,8 @@ def get_groups_admin(request: Request) -> dict:
     return {'data': data}
 
 def create_group(request: Request, body: dict) -> dict:
-    u = user.get_user(request)
+    # u = user.get_user(request)
+    u = User().GetUser(request)
     data = []
     if u != None:
         # print(u)
@@ -92,7 +98,8 @@ def create_group(request: Request, body: dict) -> dict:
     return {'data': data}
 
 def join_group(request: Request, body: dict) -> dict:
-    u = user.get_user(request)
+    # u = user.get_user(request)
+    u = User().GetUser(request)
     data = []
     if u != None:
         groups = Group().GetData()
@@ -119,8 +126,9 @@ def join_group(request: Request, body: dict) -> dict:
     return {'data': data}
 
 def get_participating_polls(request: Request) -> dict:
-    u = user.get_user(request)
-    data = {}
+    # u = user.get_user(request)
+    u = User().GetUser(request)
+    data = []
     if u != None:
         # For the given email, get the group_id from group_detail
         # For each group_id, get the poll_id from group
@@ -135,7 +143,8 @@ def get_participating_polls(request: Request) -> dict:
     return {'data': data}
 
 def get_active_poll(request: Request) -> dict:
-    u = user.get_user(request)
+    # u = user.get_user(request)
+    u = User().GetUser(request)
     data = {}
     if u != None:
         data = {'poll_no' : 4,
@@ -152,7 +161,8 @@ def get_active_poll(request: Request) -> dict:
     return {'data': data}
     
 def get_poll_history(request: Request) -> dict:
-    u = user.get_user(request)
+    # u = user.get_user(request)
+    u = User().GetUser(request)
     if u != None:
         return {'data' : 
                     {"history" : [

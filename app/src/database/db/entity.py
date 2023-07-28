@@ -75,6 +75,7 @@ class Entity:
         cls._primeData()
         cls._df = pd.concat([cls._df, new_row], ignore_index=True)
         cls.WriteData()
+        return cls._df.to_dict("records")
 
     @classmethod
     def UpdateData(cls, set_clause: dict, where_clause: dict = None) -> dict:
