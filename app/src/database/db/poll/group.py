@@ -1,7 +1,7 @@
-from src.database.db.entity import Entity
+from src.database.dbutil.entity import Entity
 import src.database.dba.config as config
 
-class Poll(Entity):
+class Group(Entity):
 
     def __new__(cls):
         try:
@@ -12,7 +12,7 @@ class Poll(Entity):
                                           'db_type' : 'googlesheet',
                                           'db_name': config.poll_db,
                                           'table_name': __class__.__name__.lower()}
-                cls._filters = {'is_active': 'Y'}
+                # cls._filters = {'student_isactive': 'Y'}
             return cls._instance
         except:
             return None

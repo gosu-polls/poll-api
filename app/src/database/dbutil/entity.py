@@ -3,6 +3,7 @@ import pandas as pd
 from threading import Lock
 read_mutex = Lock()
 write_mutex = Lock()
+
 class Entity:
     _instance = None
     _dbInstance = None

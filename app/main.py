@@ -3,15 +3,17 @@ from requests import request
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 import src.auth.auth as auth
-import json
-import jwt
-import src.pollsmain as pollsmain
+# import json
+# import jwt
+import src.facade as facade
 # from src.db.student import Student as Student
-from src.database.db.cwc.gsheet.match import Match as Match
-from src.database.db.cwc.gsheet.country import Country as Country
-from src.database.db.cwc.cosmos.country_v2 import Country as Country_v2
-from src.database.db.cwc.cosmos.user import User as User
-from src.database.db.poll.gsheet.group import Group as Group
+from src.database.db.test.match import Match as Match
+from src.database.db.test.country import Country as Country
+from src.database.db.poll.group import Group as Group
+
+from src.database.db.test.cosmos.country_v2 import Country as Country_v2
+from src.database.db.test.cosmos.user import User as User
+
 import functools
 from dotenv import load_dotenv
 
@@ -80,6 +82,17 @@ def read_root():
 #     except Exception as err:
 #         return {"exception": err}
 
+# Cosmos DB
+# @app.get("/countries_v2")
+# def get_countries_v2() -> dict:
+#     try:
+#         data = Country_v2().GetCountries()
+#         return {"data": data}
+#     except Exception as err:
+#         return {"exception": err}
+
+
+# Test API (does not need authentication)
 @app.get("/matches")
 def get_matches() -> dict:
     try:
@@ -92,14 +105,6 @@ def get_matches() -> dict:
 def get_match(id : int) -> dict:
     try:
         data = Match().GetDatum(id)
-        return {"data": data}
-    except Exception as err:
-        return {"exception": err}
-
-@app.get("/countries_v2")
-def get_countries_v2() -> dict:
-    try:
-        data = Country_v2().GetCountries()
         return {"data": data}
     except Exception as err:
         return {"exception": err}
@@ -120,45 +125,48 @@ def get_match(id : int) -> dict:
     except Exception as err:
         return {"exception": err}
 
-@app.get("/availablepolls")
-def get_available_polls(request: Request) -> dict:
-    data = pollsmain.get_available_polls(request)
-    return data
 
-@app.get("/mygroups")
-def get_available_polls(request: Request) -> dict:
-    data = pollsmain.get_groups_admin(request)
-    return data
-
-@app.post("/creategroup")
-def create_group(request: Request, body: dict) -> dict:
-    data = pollsmain.create_group(request, body)
-    return data
-
-@app.post("/joingroup")
-def join_group(request: Request, body: dict) -> dict:
-    data = pollsmain.join_group(request, body)
-    return data
-
-@app.get("/participatingpolls")
-def get_participating_polls(request: Request) -> dict:
-    data = pollsmain.get_participating_polls(request)
-    return data
-
-@app.get("/poll")
-def get_poll(request: Request) -> dict:
-    data = pollsmain.get_active_poll(request)
-    return data
-
-@app.get("/pollhistory")
-def get_poll_history(request: Request) -> dict:
-    data = pollsmain.get_poll_history(request)
-    return data
-
+# Actual Application API end points
+# Requires Facade
 @app.post("/login")
 def login(request: dict) -> dict:
     response = auth.handle_user(request)
     return {"data" : response}
+
+@app.get("/availablepolls")
+def get_available_polls(request: Request) -> dict:
+    data = facade.get_available_polls(request)
+    return data
+
+@app.post("/creategroup")
+def create_group(request: Request, body: dict) -> dict:
+    data = facade.create_group(request, body)
+    return data
+
+@app.post("/joingroup")
+def join_group(request: Request, body: dict) -> dict:
+    data = facade.join_group(request, body)
+    return data
+
+@app.get("/mygroups")
+def get_available_polls(request: Request) -> dict:
+    data = facade.get_groups_admin(request)
+    return data
+
+@app.get("/participatingpolls")
+def get_participating_polls(request: Request) -> dict:
+    data = facade.get_participating_polls(request)
+    return data
+
+@app.get("/poll")
+def get_poll(request: Request) -> dict:
+    data = facade.get_active_poll(request)
+    return data
+
+@app.get("/pollhistory")
+def get_poll_history(request: Request) -> dict:
+    data = facade.get_poll_history(request)
+    return data
 
 if __name__ == "__main__":
     print("Launching Polls API")

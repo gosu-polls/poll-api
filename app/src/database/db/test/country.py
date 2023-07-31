@@ -1,4 +1,4 @@
-from src.database.db.entity import Entity
+from src.database.dbutil.entity import Entity
 import src.database.dba.config as config
 
 class Country(Entity):

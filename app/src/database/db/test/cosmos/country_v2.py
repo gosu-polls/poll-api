@@ -1,4 +1,4 @@
-from src.database.db.entity import Entity
+from src.database.dbutil.entity import Entity
 
 class Country(Entity):
     _instance = None

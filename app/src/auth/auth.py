@@ -2,7 +2,7 @@ import requests
 import jwt
 from datetime import datetime
 
-from src.database.db.poll.gsheet.user import User as User
+from src.database.db.poll.user import User as User
 
 def handle_user(user : dict) -> dict:
     headers = {'Authorization': 'Bearer' + user['user']['access_token'],
