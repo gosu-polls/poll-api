@@ -30,6 +30,12 @@ class Entity:
             return None
 
     @classmethod
+    def HasInstance(cls, poll_id = 0) -> bool:
+        if cls._instance is not None:
+            return cls._instance
+        return False
+    
+    @classmethod
     def _updateCache(cls, key, value = True):
         cls._cache[key] = value
 
