@@ -46,7 +46,7 @@ class Vote_Entity(Poll_Entity):
         # print(f'Checking HasInstance [{cls.__name__}] - [{poll_id}] -> {cls._pollInstanceMap}')
         if poll_id in cls._pollInstanceMap:
             if cls.__name__ in cls._pollInstanceMap[poll_id]:
-                print(f'Found an instance for [{cls.__name__}].[{poll_id}] -> {cls._pollInstanceMap[poll_id][cls.__name__]}')
+                # print(f'Found an instance for [{cls.__name__}].[{poll_id}] -> {cls._pollInstanceMap[poll_id][cls.__name__]}')
                 return True, cls._pollInstanceMap[poll_id][cls.__name__]
         # print(f'Checking HasInstance for {cls} - {poll_id}')
         # if poll_id in cls._pollInstanceMap:

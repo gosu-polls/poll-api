@@ -127,6 +127,11 @@ def get_participating_polls(request: Request) -> dict:
         group_detail = Group_Detail().GetData()
         group = Group().GetData()
         poll = Poll().GetData()
+        # print('*********************')
+        # print(f'group_detail is {group_detail}')
+        # print(f'group is {group}')
+        # print(f'poll is {poll}')
+        # print('*********************')
         data = [p for p in poll if p['poll_id'] in 
                     [g['poll_id'] for g in group if g['group_id'] in 
                         [gd['group_id'] for gd in group_detail if gd['email'] == u['email']]]
@@ -140,51 +145,25 @@ def get_active_poll(request: Request) -> dict:
         participating_polls = get_participating_polls(request)['data']
         for pp in participating_polls:
             po = Poll_Object(pp)
+            # print(f'poll object of {pp} is {po.poll_name}.{po.poll_id}')
             vote = Vote(po).GetData()
             vote_detail = Vote_Detail(po).GetData()
             ballot = Ballot(po).GetData()
-            # print(f"Printing vote {vote}")
-            # print(f"Printing vote_detail {vote_detail}")
-            # print(f"Printing ballot {ballot}")
-            # vote = Vote(po).GetData()
-            # print(f"Printing vote2 {vote}")
-            # ballot = Ballot(po).GetData()
-            # print(f"Printing ballot2 {ballot}")
-            # vote_detail = Vote_Detail(po).GetData()
-            # print(f"Printing vote_detail2 {vote_detail}")
-            # data = [vd for vd in vote_detail if vd['vote_id'] in 
-            #         [v['vote_id'] for v in vote]]
-            # print(data)
+            
+            # print(f"Printing vote for {po.poll_name}.{po.poll_id} -> {vote}")
+            # print(f"Printing vote_detail {po.poll_name}.{po.poll_id} -> {vote_detail}")
+            # print(f"Printing ballot {po.poll_name}.{po.poll_id} -> {ballot}")
+
             # for each poll_id, get the vote
             # for each vote, get vote_detail
             # for each vote_detail get ballot
-        print('**********************************')
-        for pp in participating_polls:
-            po = Poll_Object(pp)
-            vote = Vote(po).GetData()
-            vote_detail = Vote_Detail(po).GetData()
-            ballot = Ballot(po).GetData()
-            print(f"Printing vote {vote}")
-            print(f"Printing vote_detail {vote_detail}")
-            print(f"Printing ballot {ballot}")
 
-        
-    # u = user.get_user(request)
-    u = User().GetUser(request)
-    data = {}
-    if u != None:
-        
-        data = {'poll_no' : 4,
-                'question' : 'India vs Australia',
-                'options' : [
-                             {'id': 0,
-                              'opt': 'India'}, 
-                             {'id': 1,
-                              'opt': 'Australia'},
-                             {'id': 2,
-                              'opt': 'NR / Tie'}
-                            ]
-               }
+            poll_data = [vd for vd in vote_detail if vd['vote_id'] in 
+                    [v['vote_id'] for v in vote]]
+            data.append({'poll_id': pp['poll_id'],
+                         'data': poll_data})
+            # data.append({pp['poll_id']: poll_data})
+        print(data)
     return {'data': data}
     
 def get_poll_history(request: Request) -> dict:

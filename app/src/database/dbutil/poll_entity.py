@@ -13,8 +13,7 @@ class Poll_Entity:
     _db_type = None
     _entity_identifier = {}
     _filters = {}
-    _df = None
-    # _dfMap = {}
+    # _df = None
     # _poll_id = 0
 
     def __new__(cls, db_type, poll_id = 0):
@@ -28,7 +27,7 @@ class Poll_Entity:
                                                   cls._entity_identifier['instance_per_poll'] == 'many')
                                               else False):
                 cls._instance = super(__class__, cls).__new__(cls)
-                # cls._poll_id = poll_id
+                cls._poll_id = poll_id
                 print(f'Created instance for {cls.__name__}.[{poll_id}]')
             return cls._instance
         except Exception as err:
@@ -63,20 +62,25 @@ class Poll_Entity:
     def _primeData(cls):
         with read_mutex:
             if not cls._isCached():
-                print(f"Priming [{cls._entity_identifier['key']}]")
-                cls._df = cls._dbInstanceMap[cls._db_type].ReadData(identifier = cls._entity_identifier,
+                # print(f"Priming [{cls.__name__}].[{cls._poll_id}] using [{cls._entity_identifier}]")
+                print(f"Priming [{cls.__name__}].[{cls._poll_id}] from [{cls._entity_identifier['db_type']}.{cls._entity_identifier['db_name']}.{cls._entity_identifier['table_name']}]")
+                # print(f"Data for [{cls._entity_identifier['key']}] using [{cls._entity_identifier}] before priming {cls._df[cls._poll_id]}")
+                # cls._df = cls._dbInstanceMap[cls._db_type].ReadData(identifier = cls._entity_identifier,
+                #                                                     filters = cls._filters)
+                cls._df[cls._poll_id] = cls._dbInstanceMap[cls._db_type].ReadData(identifier = cls._entity_identifier,
                                                                     filters = cls._filters)
+
+                # print(f"Data for [{cls._entity_identifier['key']}] using [{cls._entity_identifier}] after priming {cls._df[cls._poll_id]}")
                 
-                # cls._dfMap[cls._poll_id] = cls._dbInstanceMap[cls._db_type].ReadData(identifier = cls._entity_identifier,
-                                                                    # filters = cls._filters)
                 cls._updateCache(cls._entity_identifier['key'])
 
     @classmethod
     def GetData(cls) -> dict:
         try:
             cls._primeData()
-            data = cls._df.to_dict("records")
-            # data = cls._dfMap[cls._poll_id].to_dict("records")
+            # data = cls._df.to_dict("records")
+            # print(f"GetData for {cls}.{cls._poll_id} -> {cls._df[cls._poll_id]} ")
+            data = cls._df[cls._poll_id].to_dict("records")
             return data
         except Exception as err:
             return {"exception": err}
@@ -85,7 +89,9 @@ class Poll_Entity:
     def GetDatum(cls, id) -> dict:
         try:
             cls._primeData()
-            data = cls._df[cls._df[cls._entity_identifier['pk'] if 'pk' in cls._entity_identifier else 'id'] == id].to_dict("records")
+            # data = cls._df[cls._df[cls._entity_identifier['pk'] if 'pk' in cls._entity_identifier else 'id'] == id].to_dict("records")
+            df = cls._df[cls._poll_id]
+            data = df[df[cls._entity_identifier['pk'] if 'pk' in cls._entity_identifier else 'id'] == id].to_dict("records")
             return data        
         except Exception as err:
             return {"exception": err}
@@ -93,15 +99,18 @@ class Poll_Entity:
     @classmethod
     def GetNextId(cls) -> int:
         cls._primeData()
-        return 1 if cls._df is None or len(cls._df) == 0 else cls._df[cls._entity_identifier['pk']].max() + 1
+        # return 1 if cls._df is None or len(cls._df) == 0 else cls._df[cls._entity_identifier['pk']].max() + 1
+        return 1 if cls._df[cls._poll_id] is None or len(cls._df[cls._poll_id]) == 0 else cls._df[cls._poll_id][cls._entity_identifier['pk']].max() + 1
     
     @classmethod
     def AddData(cls, data: dict) -> dict:
         new_row = pd.DataFrame(data, index=[0])
         cls._primeData()
-        cls._df = pd.concat([cls._df, new_row], ignore_index=True)
+        # cls._df = pd.concat([cls._df, new_row], ignore_index=True)
+        cls._df[cls._poll_id] = pd.concat([cls._df[cls._poll_id], new_row], ignore_index=True)
         cls.WriteData()
-        return cls._df.to_dict("records")
+        # return cls._df.to_dict("records")
+        return cls._df[cls._poll_id].to_dict("records")
 
     @classmethod
     def UpdateData(cls, set_clause: dict, where_clause: dict = None) -> dict:
@@ -114,7 +123,8 @@ class Poll_Entity:
             v = where_clause[k]
         
         for s in set_clause:
-            cls._df.loc[cls._df[k] == v, s] = set_clause[s]
+            # cls._df.loc[cls._df[k] == v, s] = set_clause[s]
+            cls._df[cls._poll_id].loc[cls._df[cls._poll_id][k] == v, s] = set_clause[s]
         
         cls.WriteData()
 
@@ -122,7 +132,8 @@ class Poll_Entity:
     def WriteData(cls) -> dict:
         with write_mutex:
             try:
-                cls._dbInstanceMap[cls._db_type].WriteData(identifier = cls._entity_identifier, data=cls._df)
+                # cls._dbInstanceMap[cls._db_type].WriteData(identifier = cls._entity_identifier, data=cls._df)
+                cls._dbInstanceMap[cls._db_type].WriteData(identifier = cls._entity_identifier, data=cls._df[cls._poll_id])
             except Exception as err:
                 print(err)
                 return{"exception": err}
