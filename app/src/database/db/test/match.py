@@ -1,7 +1,7 @@
-from src.database.dbutil.entity import Entity
+from src.database.dbutil.poll_entity import Poll_Entity
 import src.database.dba.config as config
 
-class Match(Entity):
+class Match(Poll_Entity):
     
     def __new__(cls):
         try:

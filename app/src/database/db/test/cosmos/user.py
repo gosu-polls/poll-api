@@ -1,7 +1,7 @@
-from src.database.dbutil.entity import Entity
+from src.database.dbutil.poll_entity import Poll_Entity
 import os
 
-class User(Entity):
+class User(Poll_Entity):
     _instance = None
     _df = None
 

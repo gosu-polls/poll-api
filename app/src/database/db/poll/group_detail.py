@@ -1,12 +1,13 @@
-from src.database.dbutil.entity import Entity
+from src.database.dbutil.poll_entity import Poll_Entity
 import src.database.dba.config as config
 
-class Group_Detail(Entity):
+class Group_Detail(Poll_Entity):
 
     def __new__(cls):
         try:
             # if cls._instance is None:
-            if not cls.HasInstance():
+            hasInstance, cls._instance = cls.HasInstance()
+            if not hasInstance:
                 cls._instance = super(__class__, cls).__new__(cls, 'googlesheet')
                 cls._entity_identifier = {'key' : __class__.__module__ + '.' + __class__.__name__,
                                           'pk' : __class__.__name__.lower() + '_id',

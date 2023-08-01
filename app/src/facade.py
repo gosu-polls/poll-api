@@ -1,16 +1,19 @@
-import functools
+# import functools
 import json
 import jwt
 from fastapi import Request
+
 from src.database.db.poll.group import Group as Group
 from src.database.db.poll.group_detail import Group_Detail as Group_Detail
 from src.database.db.poll.poll import Poll as Poll
 from src.database.db.poll.user import User as User
-from src.module.poll_object import Poll_Object
+
+from src.database.dbutil.poll_object import Poll_Object as Poll_Object
+
 from src.database.db.vote.vote import Vote as Vote
 from src.database.db.vote.vote_detail import Vote_Detail as Vote_Detail
 from src.database.db.vote.ballot import Ballot as Ballot 
-# import src.user as user
+
 import uuid
 from datetime import datetime
 
@@ -18,29 +21,20 @@ class polls():
     def init():
         pass
 
-def login_required(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        # print("******************************************")
-        request = args[0]
-        # print(f"poll.login_required args -> {request}")
-        # print(f"poll.login_required kwargs -> {kwargs}")
-        # print("******************************************")
-        header = ''
-        header = json.loads(request.headers.get('Token'))
-        # print(header)
-        if header == None:
-            # print('None')
-            # return None
-            return func(*args, **kwargs)
-        else:
-            # print(jwt.decode(header['jwt'], 'secret', 'HS256')['email'])
-            return func(*args, **kwargs)
-    return wrapper
+# def login_required(func):
+#     @functools.wraps(func)
+#     def wrapper(*args, **kwargs):
+#         request = args[0]
+#         header = ''
+#         header = json.loads(request.headers.get('Token'))
+#         if header == None:
+#             return func(*args, **kwargs)
+#         else:
+#             return func(*args, **kwargs)
+#     return wrapper
 
 # Private Methods
 def _get_my_groups(request: Request) -> list:
-    # u = user.get_user(request)
     u = User().GetUser(request)
     data = []
     if u != None:
@@ -53,7 +47,6 @@ def _get_my_groups(request: Request) -> list:
     return data
 
 def get_available_polls(request: Request) -> dict:
-    # u = user.get_user(request)
     u = User().GetUser(request)
     data = []
     if u != None:
@@ -61,7 +54,6 @@ def get_available_polls(request: Request) -> dict:
     return {'data': data}
 
 def get_groups_admin(request: Request) -> dict:
-    # u = user.get_user(request)
     u = User().GetUser(request)
     data = []
     if u != None:
@@ -70,11 +62,9 @@ def get_groups_admin(request: Request) -> dict:
     return {'data': data}
 
 def create_group(request: Request, body: dict) -> dict:
-    # u = user.get_user(request)
     u = User().GetUser(request)
     data = []
     if u != None:
-        # print(u)
         groups = Group().GetData()
         if (body['group_name'] in [g['group_name'] for g in groups if g['group_admin'] == u['email']]):
             print('Group already exists')
@@ -90,7 +80,6 @@ def create_group(request: Request, body: dict) -> dict:
                         }
             Group().AddData(new_group)
             group_detail_id = Group_Detail().GetNextId()
-            # group_detail_id	group_id	email	joined_on
             new_group_detail = {'group_detail_id' : group_detail_id,
                                 'group_id': group_id,
                                 'email': u['email'],
@@ -103,7 +92,6 @@ def create_group(request: Request, body: dict) -> dict:
     return {'data': data}
 
 def join_group(request: Request, body: dict) -> dict:
-    # u = user.get_user(request)
     u = User().GetUser(request)
     data = []
     if u != None:
@@ -114,9 +102,7 @@ def join_group(request: Request, body: dict) -> dict:
             data.append('Invalid Group Code')
         else:
             requested_group_id = requested_group[0]
-            # print(requested_group_id)
             group_detail = Group_Detail().GetData()
-            # reequest_group_detail = [g for g in group_detail if g['group_id'] == requested_group_id and g['email'] == u['email']]
             if len([g for g in group_detail if g['group_id'] == requested_group_id and g['email'] == u['email']]) > 0:
                 data.append('User already part of Group')
             else:
@@ -132,7 +118,6 @@ def join_group(request: Request, body: dict) -> dict:
 
 
 def get_participating_polls(request: Request) -> dict:
-    # u = user.get_user(request)
     u = User().GetUser(request)
     data = []
     if u != None:
@@ -158,13 +143,30 @@ def get_active_poll(request: Request) -> dict:
             vote = Vote(po).GetData()
             vote_detail = Vote_Detail(po).GetData()
             ballot = Ballot(po).GetData()
-            print(f"Printing vote {vote}")
-            print(f"Printing vote {vote_detail}")
-            print(f"Printing vote {ballot}")
+            # print(f"Printing vote {vote}")
+            # print(f"Printing vote_detail {vote_detail}")
+            # print(f"Printing ballot {ballot}")
+            # vote = Vote(po).GetData()
+            # print(f"Printing vote2 {vote}")
+            # ballot = Ballot(po).GetData()
+            # print(f"Printing ballot2 {ballot}")
+            # vote_detail = Vote_Detail(po).GetData()
+            # print(f"Printing vote_detail2 {vote_detail}")
+            # data = [vd for vd in vote_detail if vd['vote_id'] in 
+            #         [v['vote_id'] for v in vote]]
+            # print(data)
             # for each poll_id, get the vote
             # for each vote, get vote_detail
             # for each vote_detail get ballot
-        
+        print('**********************************')
+        for pp in participating_polls:
+            po = Poll_Object(pp)
+            vote = Vote(po).GetData()
+            vote_detail = Vote_Detail(po).GetData()
+            ballot = Ballot(po).GetData()
+            print(f"Printing vote {vote}")
+            print(f"Printing vote_detail {vote_detail}")
+            print(f"Printing ballot {ballot}")
 
         
     # u = user.get_user(request)
@@ -186,7 +188,6 @@ def get_active_poll(request: Request) -> dict:
     return {'data': data}
     
 def get_poll_history(request: Request) -> dict:
-    # u = user.get_user(request)
     u = User().GetUser(request)
     if u != None:
         return {'data' : 

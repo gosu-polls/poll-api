@@ -1,6 +1,6 @@
-from src.database.dbutil.entity import Entity
+from src.database.dbutil.poll_entity import Poll_Entity
 
-class Country(Entity):
+class Country(Poll_Entity):
     _instance = None
     _df = None
 
