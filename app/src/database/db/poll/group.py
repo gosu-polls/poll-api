@@ -1,5 +1,9 @@
 from src.database.dbutil.poll_entity import Poll_Entity
 import src.database.dba.config as config
+from src.database.db.poll.user import User as User
+from src.database.db.poll.group_detail import Group_Detail as Group_Detail
+
+from fastapi import Request
 
 class Group(Poll_Entity):
     _df = {}
@@ -20,3 +24,44 @@ class Group(Poll_Entity):
             return cls._instance
         except:
             return None
+
+    @classmethod
+    def GetGroups(cls, request: Request) -> list:
+        u = User().GetUser(request)
+        data = []
+        if u != None:
+            # For the given email, get the group_id from group_detail
+            # For each group_id, get group
+            group_detail = Group_Detail().GetData()
+            group = Group().GetData()
+            data = [g for g in group if g['group_id'] in 
+                        [gd['group_id'] for gd in group_detail if gd['email'] == u['email']]
+                   ]
+        return data
+    
+    # @classmethod
+    # def GetGroups(cls, email: str) -> list:
+    #     # For the given email, get the group_id from group_detail
+    #     # For each group_id, get group
+    #     group_detail = Group_Detail().GetData()
+    #     group = Group().GetData()
+    #     data = [g for g in group if g['group_id'] in 
+    #                 [gd['group_id'] for gd in group_detail if gd['email'] == email]
+    #            ]
+    #     return data
+    
+    @classmethod
+    def GetAdminGroups(cls, request: Request) -> list:
+        u = User().GetUser(request)
+        data = []
+        if u != None:
+            groups = Group().GetData()
+            data = [g for g in groups if g['group_admin'] == u['email']]
+        return data
+    
+    # @classmethod
+    # def GetAdminGroups(cls, email: str) -> list:
+    #     groups = Group().GetData()
+    #     data = [g for g in groups if g['group_admin'] == email]
+    #     return data
+    

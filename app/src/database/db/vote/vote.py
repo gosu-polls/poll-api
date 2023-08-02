@@ -1,6 +1,7 @@
 from src.database.dbutil.vote_entity import Vote_Entity
 from src.database.dbutil.poll_object import Poll_Object
 
+
 class Vote(Vote_Entity):
     _df = {}
     _poll_id = None

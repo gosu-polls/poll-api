@@ -14,6 +14,8 @@ from src.database.db.poll.group import Group as Group
 from src.database.db.test.cosmos.country_v2 import Country as Country_v2
 from src.database.db.test.cosmos.user import User as User
 
+from test.t_polls import TestSuite as TestSuite
+
 import functools
 from dotenv import load_dotenv
 
@@ -158,9 +160,14 @@ def get_participating_polls(request: Request) -> dict:
     data = facade.get_participating_polls(request)
     return data
 
-@app.get("/poll")
+@app.get("/votesection")
 def get_poll(request: Request) -> dict:
     data = facade.get_active_poll(request)
+    return data
+
+@app.post("/savevote")
+def get_poll(request: Request, body: dict) -> dict:
+    data = facade.save_vote(request)
     return data
 
 @app.get("/pollhistory")
@@ -168,6 +175,11 @@ def get_poll_history(request: Request) -> dict:
     data = facade.get_poll_history(request)
     return data
 
+def run_tests():
+    # TestSuite().test_get_poll(1)
+    TestSuite().test_vote_detail()
+
 if __name__ == "__main__":
-    print("Launching Polls API")
+    print("Launching Polls API")  
+    # run_tests()
     uvicorn.run("main:app", port=3003, host="0.0.0.0", reload=True)

@@ -24,6 +24,7 @@ class User(Poll_Entity):
         except:
             return None
 
+    @classmethod
     def GetUser(cls, request: Request) -> dict:
         header = json.loads(request.headers.get('Token'))
         user = None

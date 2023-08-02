@@ -17,9 +17,9 @@ from src.database.db.vote.ballot import Ballot as Ballot
 import uuid
 from datetime import datetime
 
-class polls():
-    def init():
-        pass
+# class polls():
+#     def init():
+#         pass
 
 # def login_required(func):
 #     @functools.wraps(func)
@@ -34,31 +34,32 @@ class polls():
 #     return wrapper
 
 # Private Methods
-def _get_my_groups(request: Request) -> list:
-    u = User().GetUser(request)
-    data = []
-    if u != None:
-        groups = Group().GetData()
-        header = json.loads(request.headers.get('Token'))
-        if header != None:
-            email = jwt.decode(header['jwt'], 'secret', 'HS256')['email']
-            data = [g for g in groups if g['group_admin'] == email]
+# def _get_my_groups(request: Request) -> list:
+#     u = User().GetUser(request)
+#     data = []
+#     if u != None:
+#         groups = Group().GetData()
+#         header = json.loads(request.headers.get('Token'))
+#         if header != None:
+#             email = jwt.decode(header['jwt'], 'secret', 'HS256')['email']
+#             data = [g for g in groups if g['group_admin'] == email]
 
-    return data
+#     return data
 
 def get_available_polls(request: Request) -> dict:
-    u = User().GetUser(request)
-    data = []
-    if u != None:
-        data = Poll().GetData()
+    data = Poll().GetAvailablePolls(request)
+    # u = User().GetUser(request)
+    # data = []
+    # if u != None:
+    #     data = Poll().GetData()
     return {'data': data}
 
 def get_groups_admin(request: Request) -> dict:
-    u = User().GetUser(request)
-    data = []
-    if u != None:
-        data = _get_my_groups(request)
-
+    # u = User().GetUser(request)
+    # data = []
+    # if u != None:
+    #     data = _get_my_groups(request)
+    data = Group().GetAdminGroups(request)
     return {'data': data}
 
 def create_group(request: Request, body: dict) -> dict:
@@ -86,7 +87,8 @@ def create_group(request: Request, body: dict) -> dict:
                                 'joined_on': datetime.now().strftime("%Y-%m-%d %H%M%S")
                                 }
             Group_Detail().AddData(new_group_detail)
-            data = _get_my_groups(request)
+            # data = _get_my_groups(request)
+            data = Group().GetAdminGroups(request)
             # data.append('Group Created')
             
     return {'data': data}
@@ -116,54 +118,57 @@ def join_group(request: Request, body: dict) -> dict:
                 data.append('User added to the Group')
     return {'data': data}
 
-
-def get_participating_polls(request: Request) -> dict:
+def save_vote(request: Request, body: dict) -> dict:
     u = User().GetUser(request)
     data = []
     if u != None:
-        # For the given email, get the group_id from group_detail
-        # For each group_id, get the poll_id from group
-        # For each poll_id get poll data from poll
-        group_detail = Group_Detail().GetData()
-        group = Group().GetData()
-        poll = Poll().GetData()
-        # print('*********************')
-        # print(f'group_detail is {group_detail}')
-        # print(f'group is {group}')
-        # print(f'poll is {poll}')
-        # print('*********************')
-        data = [p for p in poll if p['poll_id'] in 
-                    [g['poll_id'] for g in group if g['group_id'] in 
-                        [gd['group_id'] for gd in group_detail if gd['email'] == u['email']]]
-               ]
+        # find the participating poll using poll id
+        poll = Poll().GetDatum(body['poll_id'])
+        po = Poll_Object(poll)
+        ballot = Ballot(po).GetData()
+    
+    return {'data': data}
+
+def get_participating_polls(request: Request) -> dict:
+    # u = User().GetUser(request)
+    # data = []
+    # if u != None:
+    #     data = Poll().GetParticipatingPolls(u['email'])
+    data = Poll().GetParticipatingPolls(request)
     return {'data': data}
 
 def get_active_poll(request: Request) -> dict:
-    u = User().GetUser(request)
     data = []
-    if u != None:
-        participating_polls = get_participating_polls(request)['data']
-        for pp in participating_polls:
-            po = Poll_Object(pp)
-            # print(f'poll object of {pp} is {po.poll_name}.{po.poll_id}')
-            vote = Vote(po).GetData()
-            vote_detail = Vote_Detail(po).GetData()
-            ballot = Ballot(po).GetData()
+    # u = User().GetUser(request)
+    # if u != None:
+    participating_polls = Poll().GetParticipatingPolls(request)
+    # print(f'Participating Polls are {participating_polls}')
+
+    for pp in participating_polls:
+        po = Poll_Object(pp)
+        # print(f'poll object of {pp} is {po.poll_name}.{po.poll_id}')
+        vote = Vote(po).GetData()
+        vote_detail = Vote_Detail(po).GetData()
+        print(vote)
+        print(vote_detail)
+        # for each poll_id, get the vote
+        # for each vote, get vote_detail
+        # for each vote_detail get ballot
+        poll_data = []
+        for v in vote:
+            vd = [vd for vd in vote_detail if vd['vote_id'] == v['vote_id']]
+            v['vote_detail'] = vd 
+            poll_data.append(v)
             
-            # print(f"Printing vote for {po.poll_name}.{po.poll_id} -> {vote}")
-            # print(f"Printing vote_detail {po.poll_name}.{po.poll_id} -> {vote_detail}")
-            # print(f"Printing ballot {po.poll_name}.{po.poll_id} -> {ballot}")
-
-            # for each poll_id, get the vote
-            # for each vote, get vote_detail
-            # for each vote_detail get ballot
-
-            poll_data = [vd for vd in vote_detail if vd['vote_id'] in 
-                    [v['vote_id'] for v in vote]]
-            data.append({'poll_id': pp['poll_id'],
-                         'data': poll_data})
-            # data.append({pp['poll_id']: poll_data})
-        print(data)
+            # poll_data = [vd for vd in vote_detail if vd['vote_id'] in 
+            #                 [v['vote_id'] for v in vote]
+            #             ]
+        data.append({'poll_id': pp['poll_id'],
+                    #  'vote_title': v['vote_title'],
+                        'data': poll_data})
+        # data.append({pp['poll_id']: poll_data})
+    
+    print(f'Participating Polls data is {data}')
     return {'data': data}
     
 def get_poll_history(request: Request) -> dict:
