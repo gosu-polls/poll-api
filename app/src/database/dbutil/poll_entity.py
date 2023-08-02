@@ -59,9 +59,9 @@ class Poll_Entity:
             return False
 
     @classmethod
-    def _primeData(cls):
-        with read_mutex:
-            if not cls._isCached():
+    def _readData(cls):
+        if not cls._isCached():
+            with read_mutex:
                 # print(f"Priming [{cls.__name__}].[{cls._poll_id}] using [{cls._entity_identifier}]")
                 print(f"Priming [{cls.__name__}].[{cls._poll_id}] from [{cls._entity_identifier['db_type']}.{cls._entity_identifier['db_name']}.{cls._entity_identifier['table_name']}]")
                 # print(f"Data for [{cls._entity_identifier['key']}] using [{cls._entity_identifier}] before priming {cls._df[cls._poll_id]}")
@@ -74,10 +74,11 @@ class Poll_Entity:
                 
                 cls._updateCache(cls._entity_identifier['key'])
 
+
     @classmethod
     def GetData(cls) -> dict:
         try:
-            cls._primeData()
+            cls._readData()
             # data = cls._df.to_dict("records")
             # print(f"GetData for {cls}.{cls._poll_id} -> {cls._df[cls._poll_id]} ")
             data = cls._df[cls._poll_id].to_dict("records")
@@ -88,7 +89,7 @@ class Poll_Entity:
     @classmethod
     def GetDatum(cls, id) -> dict:
         try:
-            cls._primeData()
+            cls._readData()
             # data = cls._df[cls._df[cls._entity_identifier['pk'] if 'pk' in cls._entity_identifier else 'id'] == id].to_dict("records")
             df = cls._df[cls._poll_id]
             data = df[df[cls._entity_identifier['pk'] if 'pk' in cls._entity_identifier else 'id'] == id].to_dict("records")
@@ -98,33 +99,75 @@ class Poll_Entity:
 
     @classmethod
     def GetNextId(cls) -> int:
-        cls._primeData()
+        cls._readData()
         # return 1 if cls._df is None or len(cls._df) == 0 else cls._df[cls._entity_identifier['pk']].max() + 1
         return 1 if cls._df[cls._poll_id] is None or len(cls._df[cls._poll_id]) == 0 else cls._df[cls._poll_id][cls._entity_identifier['pk']].max() + 1
     
     @classmethod
+    # mode: 
+    #   - a (append)
+    #   - u (update)
+    #   - w (write)
+    # body:
+    #   - data
+    #   - set_clause
+    #   - where_clause
+    def _writeData(cls, mode : str, body: dict):
+        with write_mutex:
+            try:
+                if mode in ['a', 'u']:
+                    cls._readData()
+                    if mode == 'a':
+                        new_row = pd.DataFrame(body['data'], index=[0])
+                        cls._df[cls._poll_id] = pd.concat([cls._df[cls._poll_id], new_row], ignore_index=True)
+                    elif mode == 'u':
+                        # Assumption is we have one where clause
+                        k = ''
+                        v = ''
+                        if (len(body['where_clause']) > 0):
+                            k = list(body['where_clause'].keys())[0]
+                            v = body['where_clause'][k]
+                        
+                        for s in body['set_clause']:
+                            # cls._df.loc[cls._df[k] == v, s] = set_clause[s]
+                            cls._df[cls._poll_id].loc[cls._df[cls._poll_id][k] == v, s] = body['set_clause'][s]
+
+                cls._dbInstanceMap[cls._db_type].WriteData(identifier = cls._entity_identifier, data=cls._df[cls._poll_id])
+            except Exception as err:
+                print(err)
+                return{"exception": err}
+
+    @classmethod
     def AddData(cls, data: dict) -> dict:
-        new_row = pd.DataFrame(data, index=[0])
-        cls._primeData()
-        # cls._df = pd.concat([cls._df, new_row], ignore_index=True)
-        cls._df[cls._poll_id] = pd.concat([cls._df[cls._poll_id], new_row], ignore_index=True)
-        cls.WriteData()
-        # return cls._df.to_dict("records")
+        body = {'data': data}
+        cls._writeData(mode='a', body=body)
+
+        # new_row = pd.DataFrame(data, index=[0])
+        # cls._readData()
+        # cls._df[cls._poll_id] = pd.concat([cls._df[cls._poll_id], new_row], ignore_index=True)
+        # cls.WriteData()
+        
         return cls._df[cls._poll_id].to_dict("records")
 
     @classmethod
     def UpdateData(cls, set_clause: dict, where_clause: dict = None) -> dict:
-        cls._primeData()
-        # Assumption is we have one where clause
-        k = ''
-        v = ''
-        if (len(where_clause) > 0):
-            k = list(where_clause.keys())[0]
-            v = where_clause[k]
+        body = {
+                    'set_clause': set_clause,
+                    'where_clause': where_clause
+               }
+        cls._writeData(mode='u', body=body)
         
-        for s in set_clause:
-            # cls._df.loc[cls._df[k] == v, s] = set_clause[s]
-            cls._df[cls._poll_id].loc[cls._df[cls._poll_id][k] == v, s] = set_clause[s]
+        # cls._readData()
+        # # Assumption is we have one where clause
+        # k = ''
+        # v = ''
+        # if (len(where_clause) > 0):
+        #     k = list(where_clause.keys())[0]
+        #     v = where_clause[k]
+        
+        # for s in set_clause:
+        #     # cls._df.loc[cls._df[k] == v, s] = set_clause[s]
+        #     cls._df[cls._poll_id].loc[cls._df[cls._poll_id][k] == v, s] = set_clause[s]
         
         cls.WriteData()
 
@@ -132,20 +175,11 @@ class Poll_Entity:
     def WriteData(cls) -> dict:
         with write_mutex:
             try:
-                # cls._dbInstanceMap[cls._db_type].WriteData(identifier = cls._entity_identifier, data=cls._df)
                 cls._dbInstanceMap[cls._db_type].WriteData(identifier = cls._entity_identifier, data=cls._df[cls._poll_id])
             except Exception as err:
                 print(err)
                 return{"exception": err}
 
-    # @classmethod
-    # def _performIO(cls, mode) -> dict:
-    #     with mutex:
-    #         if mode == 'r':
-    #             pass
-    #         elif mode == 'w':
-    #             pass
-    
     @classmethod
     def ResetCache(cls):
         try:
