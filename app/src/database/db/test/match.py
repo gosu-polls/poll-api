@@ -2,6 +2,7 @@ from src.database.dbutil.poll_entity import Poll_Entity
 import src.database.dba.config as config
 
 class Match(Poll_Entity):
+    _df = {}
     
     def __new__(cls):
         try:
