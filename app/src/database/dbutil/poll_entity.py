@@ -60,8 +60,8 @@ class Poll_Entity:
 
     @classmethod
     def _readData(cls):
-        if not cls._isCached():
-            with read_mutex:
+        with read_mutex:
+            if not cls._isCached():
                 # print(f"Priming [{cls.__name__}].[{cls._poll_id}] using [{cls._entity_identifier}]")
                 print(f"Priming [{cls.__name__}].[{cls._poll_id}] from [{cls._entity_identifier['db_type']}.{cls._entity_identifier['db_name']}.{cls._entity_identifier['table_name']}]")
                 # print(f"Data for [{cls._entity_identifier['key']}] using [{cls._entity_identifier}] before priming {cls._df[cls._poll_id]}")
