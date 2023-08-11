@@ -72,17 +72,17 @@ def create_group(request: Request, body: dict) -> dict:
             data.append('Group already exists')
         else:
             group_code = uuid.uuid4().hex
-            group_id = Group().GetNextId()
-            new_group = {'group_id': group_id,
-                         'group_name': body['group_name'],
+            # group_id = Group().GetNextId()
+            new_group = {'group_name': body['group_name'],
                          'group_code': group_code,
                          'group_admin': u['email'],
                          'poll_id': body['available_poll']['poll_id']
                         }
-            Group().AddData(new_group)
-            group_detail_id = Group_Detail().GetNextId()
-            new_group_detail = {'group_detail_id' : group_detail_id,
-                                'group_id': group_id,
+            group_id = Group().AddData(new_group)
+            print(group_id)
+            print(group_id[0])
+            # group_detail_id = Group_Detail().GetNextId()
+            new_group_detail = {'group_id': group_id[0],
                                 'email': u['email'],
                                 'joined_on': datetime.now().strftime("%Y-%m-%d %H%M%S")
                                 }
@@ -108,11 +108,9 @@ def join_group(request: Request, body: dict) -> dict:
             if len([g for g in group_detail if g['group_id'] == requested_group_id and g['email'] == u['email']]) > 0:
                 data.append('User already part of Group')
             else:
-                new_group_detail = {'group_detail_id' : Group_Detail().GetNextId(),
-                                    'group_id': requested_group_id,
+                new_group_detail = {'group_id': requested_group_id,
                                     'email': u['email'],
                                     'joined_on': datetime.now().strftime("%Y-%m-%d %H%M%S")
-
                 }
                 Group_Detail.AddData(new_group_detail)
                 data.append('User added to the Group')
@@ -123,9 +121,32 @@ def save_vote(request: Request, body: dict) -> dict:
     data = []
     if u != None:
         # find the participating poll using poll id
-        poll = Poll().GetDatum(body['poll_id'])
-        po = Poll_Object(poll)
-        ballot = Ballot(po).GetData()
+        print(f'The ballot for {u} is {body}')
+
+        po = Poll_Object(Poll().GetPollObject(request, body['poll_id']))
+        existing_ballot_vote = Ballot(po).GetUserVoteDetail(request, body['vote_id'])
+        print(f'Existing Ballot Vote is {existing_ballot_vote}')
+        if len(existing_ballot_vote) == 0:
+            new_ballot_vote = {
+                'vote_id': body['vote_id'],
+                'user_id': u['user_id'],
+                'vote_detail_id': body['selected_vote_id'],
+                'created_at': datetime.now().strftime("%Y-%m-%d %H%M%S")
+            }
+            Ballot(po).AddData(new_ballot_vote)
+        else:
+            set_clause = {
+                'vote_detail_id': body['selected_vote_id'],
+                'updated_at': datetime.now().strftime("%Y-%m-%d %H%M%S")
+            }
+            where_clause = {
+                'ballot_id': existing_ballot_vote['ballot_id']
+            }
+            Ballot(po).UpdateData(set_clause, where_clause)
+        # poll_id = Poll().GetDatum(body['poll_id'])
+        
+        # po = Poll_Object(poll_id)
+        # ballot = Ballot(po).GetData()
     
     return {'data': data}
 
@@ -146,16 +167,20 @@ def get_active_poll(request: Request) -> dict:
 
     for pp in participating_polls:
         po = Poll_Object(pp)
-        # print(f'poll object of {pp} is {po.poll_name}.{po.poll_id}')
+        print(f'poll object of {pp} is {po.poll_name}.{po.poll_id}')
         vote = Vote(po).GetData()
         vote_detail = Vote_Detail(po).GetData()
-        print(vote)
+        ballot = Ballot(po).GetUserBallot(request)
+        print("ballot: ", ballot)
+        print("vote: ", vote)
         print(vote_detail)
         # for each poll_id, get the vote
         # for each vote, get vote_detail
         # for each vote_detail get ballot
         poll_data = []
         for v in vote:
+            # v['selected_vote_detail_id'] = -1 # this is just a hack
+            v['selected_vote_detail_id'] = ballot[0]['vote_detail_id'] if len(ballot) == 1 else -1
             vd = [vd for vd in vote_detail if vd['vote_id'] == v['vote_id']]
             v['vote_detail'] = vd 
             poll_data.append(v)
@@ -168,7 +193,7 @@ def get_active_poll(request: Request) -> dict:
                         'data': poll_data})
         # data.append({pp['poll_id']: poll_data})
     
-    print(f'Participating Polls data is {data}')
+    # print(f'Participating Polls data is {data}')
     return {'data': data}
     
 def get_poll_history(request: Request) -> dict:

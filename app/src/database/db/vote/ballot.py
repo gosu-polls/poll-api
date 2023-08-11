@@ -1,5 +1,7 @@
 from src.database.dbutil.vote_entity import Vote_Entity
 from src.database.dbutil.poll_object import Poll_Object
+from src.database.db.poll.user import User as User
+from fastapi import Request
 
 class Ballot(Vote_Entity):
     _df = {}
@@ -23,3 +25,27 @@ class Ballot(Vote_Entity):
             return cls._instance
         except:
             return None
+
+    @classmethod
+    def GetUserBallot(cls, request: Request) -> list:
+        u = User().GetUser(request)
+        data = []
+        if u != None:
+            ballot = cls.GetData()
+            data = [b for b in ballot if b['user_id'] == u['user_id']]
+            # print(data)
+        return data
+    
+
+    @classmethod
+    def GetUserVoteDetail(cls, request: Request, vote_id: int) -> int:
+        u = User().GetUser(request)
+        data = []
+        if u != None:
+            ballot = cls.GetData()
+            print(ballot)
+            ballot_data = [b for b in ballot if b['user_id'] == u['user_id'] and 
+                                                b['vote_id'] == vote_id]
+            if len(ballot_data) > 0:
+                data = ballot_data[0]
+        return data

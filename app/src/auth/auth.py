@@ -21,8 +21,12 @@ def handle_user(user : dict) -> dict:
         where_clause = {'email': userData['email']}
         User().UpdateData(set_clause=set_clause, where_clause=where_clause)
     else:
-        new_user = {'user_id': User().GetNextId(),
-                    'email': userData['email'],
+        # new_user = {'user_id': User().GetNextId(),
+        #             'email': userData['email'],
+        #             'joined_on': datetime.now().strftime("%Y-%m-%d %H%M%S"),
+        #             'last_logged_on': datetime.now().strftime("%Y-%m-%d %H%M%S")
+        #            }
+        new_user = {'email': userData['email'],
                     'joined_on': datetime.now().strftime("%Y-%m-%d %H%M%S"),
                     'last_logged_on': datetime.now().strftime("%Y-%m-%d %H%M%S")
                    }

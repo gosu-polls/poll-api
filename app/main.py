@@ -167,7 +167,7 @@ def get_poll(request: Request) -> dict:
 
 @app.post("/savevote")
 def get_poll(request: Request, body: dict) -> dict:
-    data = facade.save_vote(request)
+    data = facade.save_vote(request, body)
     return data
 
 @app.get("/pollhistory")
