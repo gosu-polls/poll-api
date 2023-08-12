@@ -43,9 +43,10 @@ class Ballot(Vote_Entity):
         data = []
         if u != None:
             ballot = cls.GetData()
-            print(ballot)
+            # print(f'GetUserVoteDetail ballot raw data {ballot}')
             ballot_data = [b for b in ballot if b['user_id'] == u['user_id'] and 
                                                 b['vote_id'] == vote_id]
             if len(ballot_data) > 0:
                 data = ballot_data[0]
+            # print(f'GetUserVoteDetail ballot returning data {data}')
         return data

@@ -13,22 +13,29 @@ def handle_user(user : dict) -> dict:
                              key = "secret", 
                              algorithm="HS256")
     userData = response.json()
+    # print(f'handle_user {userData}')
     userData['jwt'] = encoded_jwt
 
     users = User().GetData()
     if (userData['email'] in [u['email'] for u in users]):
-        set_clause = {'last_logged_on': datetime.now().strftime("%Y-%m-%d %H%M%S")}
+        set_clause = {'name': userData['name'],
+                      'initials': userData['given_name'][0] + userData['family_name'][0] if len(userData['family_name']) > 0 else userData['given_name'][1],
+                      'picture': userData['picture'],
+                      'last_logged_on': datetime.utcnow().strftime("%Y-%m-%d %H%M%S")}
         where_clause = {'email': userData['email']}
         User().UpdateData(set_clause=set_clause, where_clause=where_clause)
     else:
         # new_user = {'user_id': User().GetNextId(),
         #             'email': userData['email'],
-        #             'joined_on': datetime.now().strftime("%Y-%m-%d %H%M%S"),
-        #             'last_logged_on': datetime.now().strftime("%Y-%m-%d %H%M%S")
+        #             'joined_on': datetime.utcnow().strftime("%Y-%m-%d %H%M%S"),
+        #             'last_logged_on': datetime.utcnow().strftime("%Y-%m-%d %H%M%S")
         #            }
         new_user = {'email': userData['email'],
-                    'joined_on': datetime.now().strftime("%Y-%m-%d %H%M%S"),
-                    'last_logged_on': datetime.now().strftime("%Y-%m-%d %H%M%S")
+                    'picture': userData['picture'],
+                    'name': userData['name'],
+                    'initials': userData['given_name'][0] + userData['family_name'][0] if len(userData['family_name']) > 0 else userData['given_name'][1],
+                    'joined_on': datetime.utcnow().strftime("%Y-%m-%d %H%M%S"),
+                    'last_logged_on': datetime.utcnow().strftime("%Y-%m-%d %H%M%S")
                    }
         User().AddData(new_user)
     return userData
