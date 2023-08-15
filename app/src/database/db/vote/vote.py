@@ -1,6 +1,8 @@
 from src.database.dbutil.vote_entity import Vote_Entity
 from src.database.dbutil.poll_object import Poll_Object
+from src.database.db.poll.user import User as User
 
+from fastapi import Request
 
 class Vote(Vote_Entity):
     _df = {}
@@ -26,3 +28,13 @@ class Vote(Vote_Entity):
         except Exception as err:
             print(str(err))
             return None
+
+    classmethod
+    def IsVoteActive(cls, request: Request, vote_id: int) -> bool:
+        u = User().GetUser(request)
+        if u != None:
+            vote = cls.GetDatum(vote_id)
+            is_open = vote['is_open']
+            if is_open.strip() == '':
+                is_open = 'Y'
+            return True if is_open.upper() == 'Y' else False

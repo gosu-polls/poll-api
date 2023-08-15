@@ -35,7 +35,6 @@ class Ballot(Vote_Entity):
             data = [b for b in ballot if b['user_id'] == u['user_id']]
             # print(data)
         return data
-    
 
     @classmethod
     def GetUserVoteDetail(cls, request: Request, vote_id: int) -> int:
@@ -49,4 +48,17 @@ class Ballot(Vote_Entity):
             if len(ballot_data) > 0:
                 data = ballot_data[0]
             # print(f'GetUserVoteDetail ballot returning data {data}')
+        return data
+    
+    @classmethod
+    def GetVoteDetailAllUsers(cls, request: Request) -> list:
+        u = User().GetUser(request)
+        data = []
+        if u != None:
+            ballot = cls.GetData()
+            user_data = User().GetData()
+            for b in ballot:
+                b['user_data'] = [u for u in user_data if u['user_id'] == b['user_id']]
+            print(f'GetVoteDetailAllUsers: ballot data with user info {ballot}')
+            data = ballot
         return data

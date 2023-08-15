@@ -31,7 +31,8 @@ class Poll(Poll_Entity):
         u = User().GetUser(request)
         data = []
         if u != None:
-            data = Poll().GetData()
+            # data = Poll().GetData()
+            data = cls.GetData()
         return data
 
     @classmethod
@@ -45,7 +46,8 @@ class Poll(Poll_Entity):
             # For each poll_id get poll data from poll
             group_detail = Group_Detail().GetData()
             group = Group().GetData()
-            poll = Poll().GetData()
+            # poll = Poll().GetData()
+            poll = cls.GetData()
             data = [p for p in poll if p['poll_id'] in 
                         [g['poll_id'] for g in group if g['group_id'] in 
                             [gd['group_id'] for gd in group_detail if gd['email'] == u['email']]]
@@ -53,10 +55,20 @@ class Poll(Poll_Entity):
         return data
     
     @classmethod
-    def GetPollObject(cls, request: Request, poll_id: int) -> list:
+    def GetPollObject(cls, request: Request, poll_id: int) -> dict:
         u = User().GetUser(request)
         data = None
         if u != None:
-            poll_data = Poll().GetDatum(poll_id)
-            data = poll_data[0]
+            # poll_data = Poll().GetDatum(poll_id)
+            poll_data = cls.GetDatum(poll_id)
+            data = poll_data
         return data
+    
+    @classmethod
+    def IsUserAdmin(cls, request: Request, poll_id: int) -> bool:
+        u = User().GetUser(request)
+        if u!= None:
+            poll = cls.GetDatum()
+            if poll['admin_user_id'] == u['user_id']:
+                return True
+        return False

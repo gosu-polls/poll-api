@@ -80,12 +80,15 @@ class Poll_Entity:
             return {"exception": err}
 
     @classmethod
-    def GetDatum(cls, id) -> list:
+    def GetDatum(cls, id) -> dict:
         try:
+            data : {}
             cls._readData()
             # data = cls._df[cls._df[cls._entity_identifier['pk'] if 'pk' in cls._entity_identifier else 'id'] == id].to_dict("records")
             df = cls._df[cls._poll_id]
             data = df[df[cls._entity_identifier['pk'] if 'pk' in cls._entity_identifier else 'id'] == id].to_dict("records")
+            if len(data) > 0:
+                return data[0]
             return data
         except Exception as err:
             return {"exception": err}

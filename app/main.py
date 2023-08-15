@@ -161,18 +161,33 @@ def get_participating_polls(request: Request) -> dict:
     return data
 
 @app.get("/votesection")
-def get_poll(request: Request) -> dict:
+def get_active_poll(request: Request) -> dict:
     data = facade.get_active_poll(request)
     return data
 
 @app.post("/savevote")
-def get_poll(request: Request, body: dict) -> dict:
+def save_vote(request: Request, body: dict) -> dict:
     data = facade.save_vote(request, body)
     return data
 
 @app.get("/pollhistory")
 def get_poll_history(request: Request) -> dict:
     data = facade.get_poll_history(request)
+    return data
+
+@app.post("/freezevote")
+def freeze_vote(request: Request, body: dict) -> dict:
+    data = facade.freeze_vote(request, body)
+    return data
+
+@app.post("/updateanswer")
+def update_answer(request: Request, body: dict) -> dict:
+    data = facade.update_answer(request, body)
+    return {'data': data}
+
+@app.post("/calcpoints")
+def calc_points(request: Request, poll_id: int, vote_id: int = -1):
+    data = facade.calc_points(request, poll_id, vote_id)
     return data
 
 def run_tests():

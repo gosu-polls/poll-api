@@ -75,6 +75,7 @@ def create_group(request: Request, body: dict) -> dict:
             # group_id = Group().GetNextId()
             new_group = {'group_name': body['group_name'],
                          'group_code': group_code,
+                         'group_admin_user_id': u['user_id'],
                          'group_admin': u['email'],
                          'poll_id': body['available_poll']['poll_id']
                         }
@@ -83,6 +84,7 @@ def create_group(request: Request, body: dict) -> dict:
             # print(group_id[0])
             # group_detail_id = Group_Detail().GetNextId()
             new_group_detail = {'group_id': group_id[0],
+                                'user_id': u['user_id'],
                                 'email': u['email'],
                                 'joined_on': datetime.utcnow().strftime("%Y-%m-%d %H%M%S")
                                 }
@@ -124,30 +126,34 @@ def save_vote(request: Request, body: dict) -> dict:
         print(f'save_vote: The ballot for {u} is {body}')
 
         po = Poll_Object(Poll().GetPollObject(request, body['poll_id']))
-        existing_ballot_vote = Ballot(po).GetUserVoteDetail(request, body['vote_id'])
-        print(f'save_vote: Existing Ballot Vote is {existing_ballot_vote}')
-        if len(existing_ballot_vote) == 0:
-            new_ballot_vote = {
-                'vote_id': body['vote_id'],
-                'user_id': u['user_id'],
-                'vote_detail_id': body['selected_vote_id'],
-                'created_at': datetime.utcnow().strftime("%Y-%m-%d %H%M%S")
-            }
-            Ballot(po).AddData(new_ballot_vote)
+        if Vote(po).IsVoteActive(request, body['vote_id']):
+            existing_ballot_vote = Ballot(po).GetUserVoteDetail(request, body['vote_id'])
+            print(f'save_vote: Existing Ballot Vote is {existing_ballot_vote}')
+            if len(existing_ballot_vote) == 0:
+                new_ballot_vote = {
+                    'vote_id': body['vote_id'],
+                    'user_id': u['user_id'],
+                    'vote_detail_id': body['selected_vote_id'],
+                    'created_at': datetime.utcnow().strftime("%Y-%m-%d %H%M%S")
+                }
+                Ballot(po).AddData(new_ballot_vote)
+            else:
+                set_clause = {
+                    'vote_detail_id': body['selected_vote_id'],
+                    'updated_at': datetime.utcnow().strftime("%Y-%m-%d %H%M%S")
+                }
+                where_clause = {
+                    'ballot_id': existing_ballot_vote['ballot_id']
+                }
+                Ballot(po).UpdateData(set_clause, where_clause)
+
+            # poll_id = Poll().GetDatum(body['poll_id'])
+            
+            # po = Poll_Object(poll_id)
+            # ballot = Ballot(po).GetData()
         else:
-            set_clause = {
-                'vote_detail_id': body['selected_vote_id'],
-                'updated_at': datetime.utcnow().strftime("%Y-%m-%d %H%M%S")
-            }
-            where_clause = {
-                'ballot_id': existing_ballot_vote['ballot_id']
-            }
-            Ballot(po).UpdateData(set_clause, where_clause)
-        # poll_id = Poll().GetDatum(body['poll_id'])
-        
-        # po = Poll_Object(poll_id)
-        # ballot = Ballot(po).GetData()
-    
+            print('Cannot Vote anymore. It is frozen')
+
     return {'data': data}
 
 def get_participating_polls(request: Request) -> dict:
@@ -160,54 +166,156 @@ def get_participating_polls(request: Request) -> dict:
 
 def get_active_poll(request: Request) -> dict:
     data = []
-    # u = User().GetUser(request)
-    # if u != None:
-    participating_polls = Poll().GetParticipatingPolls(request)
-    # print(f'Participating Polls are {participating_polls}')
+    u = User().GetUser(request)
+    if u != None:
+        participating_polls = Poll().GetParticipatingPolls(request)
+        # print(f'Participating Polls are {participating_polls}')
 
-    for pp in participating_polls:
-        po = Poll_Object(pp)
-        # print(f'get_active_poll: poll object of {pp} is {po.poll_name}.{po.poll_id}')
-        vote = Vote(po).GetData()
-        # print(f'get_active_poll all votes is {vote}')
-        active_votes = [v for v in vote if ((datetime.utcnow() - timedelta(minutes = 10) if len(v['valid_from'].strip()) == 0 else datetime.strptime(v['valid_from'], '%Y-%m-%d %H%M%S'))
-                                            <= datetime.utcnow() <= 
-                                            (datetime.utcnow() + timedelta(minutes = 10) if len(v['valid_to'].strip()) == 0 else datetime.strptime(v['valid_to'], '%Y-%m-%d %H%M%S')))
-                       ]
-        # print(f'get_active_poll active_votes is {active_votes}')
-        vote_detail = Vote_Detail(po).GetData()
-        # ballot = Ballot(po).GetUserBallot(request)
-        
-        # print("get_active_poll: vote: ", vote)
-        # print(vote_detail)
-        # for each poll_id, get the vote
-        # for each vote, get vote_detail
-        # for each vote_detail get ballot
-        poll_data = []
-        for v in active_votes:
-            ballot = Ballot(po).GetUserVoteDetail(request, v['vote_id'])
-            # print(f'get_active_poll: ballot for vote {v} is {ballot}')
-            # v['selected_vote_detail_id'] = -1 # this is just a hack
-            v['selected_vote_detail_id'] = ballot['vote_detail_id'] if 'vote_detail_id' in ballot else -1
-            vd = [vd for vd in vote_detail if vd['vote_id'] == v['vote_id']]
-            v['vote_detail'] = vd 
-            # print('get_active_poll: v: ', v)
-            poll_data.append(v)
+        for pp in participating_polls:
+            po = Poll_Object(pp)
+            # print(f'get_active_poll: poll object of {pp} is {po.poll_name}.{po.poll_id}')
+            vote = Vote(po).GetData()
+            # print(f'get_active_poll all votes is {vote}')
+            active_votes = [v for v in vote if (((datetime.utcnow() - timedelta(minutes = 10) if len(v['valid_from'].strip()) == 0 else datetime.strptime(v['valid_from'], '%Y-%m-%d %H%M%S'))
+                                                <= datetime.utcnow() <= 
+                                                (datetime.utcnow() + timedelta(minutes = 10) if len(v['valid_to'].strip()) == 0 else datetime.strptime(v['valid_to'], '%Y-%m-%d %H%M%S')))) and
+                                                (Vote(po).IsVoteActive(request, v['vote_id']))
+                        ]
+            # print(f'get_active_poll active_votes is {active_votes}')
+            vote_detail = Vote_Detail(po).GetData()
+            # ballot = Ballot(po).GetUserBallot(request)
             
-            # poll_data = [vd for vd in vote_detail if vd['vote_id'] in 
-            #                 [v['vote_id'] for v in vote]
-            #             ]
-        data.append({'poll_id': pp['poll_id'],
-                    #  'vote_title': v['vote_title'],
-                        'data': poll_data})
-        # data.append({pp['poll_id']: poll_data})
+            # print("get_active_poll: vote: ", vote)
+            # print(vote_detail)
+            # for each poll_id, get the vote
+            # for each vote, get vote_detail
+            # for each vote_detail get ballot
+            poll_data = []
+            for v in active_votes:
+                ballot = Ballot(po).GetUserVoteDetail(request, v['vote_id'])
+                # print(f'get_active_poll: ballot for vote {v} is {ballot}')
+                # v['selected_vote_detail_id'] = -1 # this is just a hack
+                v['selected_vote_detail_id'] = ballot['vote_detail_id'] if 'vote_detail_id' in ballot else -1
+                vd = [vd for vd in vote_detail if vd['vote_id'] == v['vote_id']]
+                v['vote_detail'] = vd 
+                v['is_admin'] = 'Y'
+                # print('get_active_poll: v: ', v)
+                poll_data.append(v)
+            data.append({'poll_id': pp['poll_id'],
+                         'is_admin': 'Y' if pp['admin_user_id'] == u['user_id'] else 'N',
+                         'data': poll_data})
+            # data.append({pp['poll_id']: poll_data})
     
     print(f'get_active_poll: Participating Polls data is {data}')
     return {'data': data}
-    
-def get_poll_history(request: Request) -> dict:
+
+def get_poll_history_v2(request: Request) -> dict:
+    data = []
     u = User().GetUser(request)
     if u != None:
+        data = [{'poll_id' : 1,
+            'vote_detail' : [{'vote_id' : 1,
+                            'vote_title' : 'Eng vs Nz',
+                            'vote_option' : [{'option': 'Eng',
+                                                'user_data' : [{'name': 'Kiran Gosu', 'initial': 'KG', 'picture': 'https://lh3.googleusercontent.com/a/AAcHTtebPZq-IT9DjR2sQJP5Yl2ziMSbqR01tawoINV4HFNu2paO=s96-c'}]
+                                            },
+                                            {'option': 'Nz',
+                                                'user_data' : [{'name': 'Arunmozhidevan G', 'initial': 'AG', 'picture': 'https://lh3.googleusercontent.com/a/AAcHTtebPZq-IT9DjR2sQJP5Yl2ziMSbqR01tawoINV4HFNu2paO=s96-c'}]
+                                            },
+                                            {'option': 'NR/Tie',
+                                                'user_data' : [{'name': 'Sivapragasam Muthu', 'initial': 'SM', 'picture': 'https://lh3.googleusercontent.com/a/AAcHTtebPZq-IT9DjR2sQJP5Yl2ziMSbqR01tawoINV4HFNu2paO=s96-c'},
+                                                            {'name': 'Kailash Kadhiresan', 'initial': 'KK', 'picture': 'https://lh3.googleusercontent.com/a/AAcHTtebPZq-IT9DjR2sQJP5Yl2ziMSbqR01tawoINV4HFNu2paO=s96-c'}
+                                                            ]
+                                            }
+                                            ]
+                            },
+                            {'vote_id' : 2,
+                            'vote_title' : 'Ned vs Pak',
+                            'vote_option' : [{'option': 'Ned',
+                                                'user_data' : [{'name': 'Kiran Gosu', 'initial': 'KG', 'picture': 'https://lh3.googleusercontent.com/a/AAcHTtebPZq-IT9DjR2sQJP5Yl2ziMSbqR01tawoINV4HFNu2paO=s96-c'},
+                                                            {'name': 'Sivapragasam Muthu', 'initial': 'SM', 'picture': 'https://lh3.googleusercontent.com/a/AAcHTtebPZq-IT9DjR2sQJP5Yl2ziMSbqR01tawoINV4HFNu2paO=s96-c'}
+                                                            ]
+                                            },
+                                            {'option': 'Pak',
+                                                'user_data' : [{'name': 'Arunmozhidevan G', 'initial': 'AG', 'picture': 'https://lh3.googleusercontent.com/a/AAcHTtebPZq-IT9DjR2sQJP5Yl2ziMSbqR01tawoINV4HFNu2paO=s96-c'},
+                                                            {'name': 'Kailash Kadhiresan', 'initial': 'KK', 'picture': 'https://lh3.googleusercontent.com/a/AAcHTtebPZq-IT9DjR2sQJP5Yl2ziMSbqR01tawoINV4HFNu2paO=s96-c'}
+                                                            ]
+                                            },
+                                            {'option': 'NR/Tie',
+                                                'user_data' : []
+                                            }
+                                            ]
+                            }
+                            ]
+        },
+        {'poll_id' : 2,
+            'vote_detail' : [{'vote_id' : 1,
+                            'vote_title' : 'Bra vs Arg',
+                            'vote_option' : [{'option': 'Bra',
+                                                'user_data' : [{'name': 'Arunmozhidevan G', 'initial': 'AG', 'picture': 'https://lh3.googleusercontent.com/a/AAcHTtebPZq-IT9DjR2sQJP5Yl2ziMSbqR01tawoINV4HFNu2paO=s96-c'}]
+                                            },
+                                            {'option': 'Nz',
+                                                'user_data' : []
+                                            },
+                                            {'option': 'NR/Tie',
+                                                'user_data' : [{'name': 'Kiran Gosu', 'initial': 'KG', 'picture': 'https://lh3.googleusercontent.com/a/AAcHTtebPZq-IT9DjR2sQJP5Yl2ziMSbqR01tawoINV4HFNu2paO=s96-c'}]
+                                            }
+                                            ]
+                            }
+                            ]
+        }
+        ]
+    return {'data': data}
+
+
+def get_poll_history(request: Request) -> dict:
+    data = []
+    u = User().GetUser(request)
+    if u != None:
+
+        # participating_polls = Poll().GetParticipatingPolls(request)
+        # for pp in participating_polls:
+        #     po = Poll_Object(pp)
+        #     vote = Vote(po).GetData()
+        #     vote_detail = Vote_Detail(po).GetData()
+        #     ballot = Ballot(po).GetData()
+            # for each participating poll (cwc/fifa)
+            # for each vote underneath
+        
+
+
+    # u = User().GetUser(request)
+    # if u != None:
+        [
+          {'poll_id': 1, 
+           'data': [{'vote_id': 1, 
+                     'vote_title': 'Eng vs Nz', 
+                     'valid_from': '', 
+                     'valid_to': '2023-10-05 090000', 
+                     'poll_id': 1, 
+                     'selected_vote_detail_id': 2, 
+                     'vote_detail': [{'vote_detail_id': 1, 'vote_id': 1, 'option': 'Eng'}, 
+                                     {'vote_detail_id': 2, 'vote_id': 1, 'option': 'NZ'}, 
+                                     {'vote_detail_id': 3, 'vote_id': 1, 'option': 'NR/Tie'}
+                                    ]
+                    }
+                   ]
+          }, 
+          {'poll_id': 2, 
+           'data': [{'vote_id': 1, 
+                     'vote_title': 'Bra vs Arg', 
+                     'valid_from': '', 
+                     'valid_to': '2023-10-05 090000', 
+                     'poll_id': 2, 
+                     'selected_vote_detail_id': 1, 
+                     'vote_detail': [{'vote_detail_id': 1, 'vote_id': 1, 'option': 'Bra'}, 
+                                     {'vote_detail_id': 2, 'vote_id': 1, 'option': 'Arg'}, 
+                                     {'vote_detail_id': 3, 'vote_id': 1, 'option': 'NR/Tie'}
+                                    ]
+                    }
+                   ]
+          }
+        ]
         return {'data' : 
                     {"history" : [
                                     {'id': 0,
@@ -277,5 +385,45 @@ def get_poll_history(request: Request) -> dict:
                                  ]
                     } 
                }
-    else:
-        return {'data': {}}
+    
+    return {'data': data}
+
+def freeze_vote(request: Request, body: dict) -> dict:
+    data = []
+    if Poll().IsUserAdmin(request, body['poll_id']):
+        po = Poll_Object(Poll().GetPollObject(request, body['poll_id']))
+        set_clause = {'is_active': 'N'}
+        where_clause = {'vote_id': body['vote_id']}
+        Vote(po).UpdateData(set_clause, where_clause)
+    return {'data': data}
+
+def update_answer(request: Request, body: dict) -> dict:
+    data = []
+    if Poll().IsUserAdmin(request, body['poll_id']):
+        po = Poll_Object(Poll().GetPollObject(request, body['poll_id']))
+        
+        # Update all answers to N for all vote_detail records under the vote.
+        set_clause = {'is_right' : 'N',
+                      'updated_at': datetime.utcnow().strftime("%Y-%m-%d %H%M%S")}
+        where_clause = {'vote_id': body['vote_id']}
+        Vote_Detail(po).UpdateData(set_clause, where_clause)
+        
+        # Update the answer to Y for the vote_detail record.
+        set_clause = {'is_right' : 'Y',
+                      'updated_at': datetime.utcnow().strftime("%Y-%m-%d %H%M%S")}
+        where_clause = {'vote_detail_id': body['vote_detail_id']}
+        Vote_Detail(po).UpdateData(set_clause, where_clause)
+
+    return {'data': data}
+
+
+def calc_points(request: Request, poll_id: int, vote_id: int = -1) -> dict:
+    u = User().GetUser(request)
+    data = []
+    if u != None:
+        pass
+        
+        # Check if the user is admin for the poll_id (cwc/fifa etc)
+        # If yes, then proceed, else return
+        #   Find the votes (eng vs aus or bra vs arg) 
+    return {'data': data}
