@@ -76,6 +76,7 @@ class Poll_Entity:
             data = cls._df[cls._poll_id].to_dict("records")
             return data
         except Exception as err:
+            print(str(err))
             return {"exception": err}
 
     @classmethod
@@ -113,8 +114,8 @@ class Poll_Entity:
             try:
                 if mode in ['a', 'u']:
                     cls._readData()
-                    print(f'_writeData existing data is {cls._df[cls._poll_id]}')
-                    print(f'cls._entity_identifier[cls._poll_id] is {cls._entity_identifier[cls._poll_id]}')
+                    # print(f'_writeData existing data is {cls._df[cls._poll_id]}')
+                    # print(f'cls._entity_identifier[cls._poll_id] is {cls._entity_identifier[cls._poll_id]}')
                     if mode == 'a':
                         data = body['data']
                         pk = cls._getNextId()

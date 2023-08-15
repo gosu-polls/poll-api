@@ -2,8 +2,6 @@ from src.database.dbutil.vote_entity import Vote_Entity
 from src.database.dbutil.poll_object import Poll_Object
 from src.database.db.poll.user import User as User
 
-from fastapi import Request
-
 class Vote(Vote_Entity):
     _df = {}
     _entity_identifier = {}
@@ -31,8 +29,7 @@ class Vote(Vote_Entity):
             return None
 
     classmethod
-    def IsVoteActive(cls, request: Request, vote_id: int) -> bool:
-        u = User().GetUser(request)
+    def IsVoteActive(cls, u: User, vote_id: int) -> bool:
         if u != None:
             vote = cls.GetDatum(vote_id)
             print(f'IsVoteActive cls: {cls}')

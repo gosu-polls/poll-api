@@ -3,10 +3,7 @@ from requests import request
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 import src.auth.auth as auth
-# import json
-# import jwt
 import src.facade as facade
-# from src.db.student import Student as Student
 from src.database.db.test.match import Match as Match
 from src.database.db.test.country import Country as Country
 from src.database.db.poll.group import Group as Group
@@ -16,7 +13,7 @@ from src.database.db.test.cosmos.user import User as User
 
 from test.t_polls import TestSuite as TestSuite
 
-import functools
+# import functools
 from dotenv import load_dotenv
 
 app = FastAPI()
@@ -151,8 +148,8 @@ def join_group(request: Request, body: dict) -> dict:
     return data
 
 @app.get("/mygroups")
-def get_available_polls(request: Request) -> dict:
-    data = facade.get_groups_admin(request)
+def get_my_groups(request: Request) -> dict:
+    data = facade.get_my_groups(request)
     return data
 
 @app.get("/participatingpolls")
@@ -162,7 +159,7 @@ def get_participating_polls(request: Request) -> dict:
 
 @app.get("/votesection")
 def get_active_poll(request: Request) -> dict:
-    data = facade.get_active_poll(request)
+    data = facade.get_vote_section(request)
     return data
 
 @app.post("/savevote")

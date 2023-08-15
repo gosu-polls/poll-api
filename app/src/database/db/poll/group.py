@@ -3,8 +3,6 @@ import src.database.dba.config as config
 from src.database.db.poll.user import User as User
 from src.database.db.poll.group_detail import Group_Detail as Group_Detail
 
-from fastapi import Request
-
 class Group(Poll_Entity):
     _df = {}
     _entity_identifier = {}
@@ -27,8 +25,7 @@ class Group(Poll_Entity):
             return None
 
     @classmethod
-    def GetGroups(cls, request: Request) -> list:
-        u = User().GetUser(request)
+    def GetGroups(cls, u: User) -> list:
         data = []
         if u != None:
             # For the given email, get the group_id from group_detail
@@ -52,8 +49,7 @@ class Group(Poll_Entity):
     #     return data
     
     @classmethod
-    def GetAdminGroups(cls, request: Request) -> list:
-        u = User().GetUser(request)
+    def GetAdminGroups(cls, u: User) -> list:
         data = []
         if u != None:
             groups = Group().GetData()
