@@ -126,6 +126,7 @@ def save_vote(request: Request, body: dict) -> dict:
         print(f'save_vote: The ballot for {u} is {body}')
 
         po = Poll_Object(Poll().GetPollObject(request, body['poll_id']))
+        print(f'save_vote : po is {po}')
         if Vote(po).IsVoteActive(request, body['vote_id']):
             existing_ballot_vote = Ballot(po).GetUserVoteDetail(request, body['vote_id'])
             print(f'save_vote: Existing Ballot Vote is {existing_ballot_vote}')
@@ -197,8 +198,7 @@ def get_active_poll(request: Request) -> dict:
                 # v['selected_vote_detail_id'] = -1 # this is just a hack
                 v['selected_vote_detail_id'] = ballot['vote_detail_id'] if 'vote_detail_id' in ballot else -1
                 vd = [vd for vd in vote_detail if vd['vote_id'] == v['vote_id']]
-                v['vote_detail'] = vd 
-                v['is_admin'] = 'Y'
+                v['vote_detail'] = vd
                 # print('get_active_poll: v: ', v)
                 poll_data.append(v)
             data.append({'poll_id': pp['poll_id'],
@@ -207,6 +207,7 @@ def get_active_poll(request: Request) -> dict:
             # data.append({pp['poll_id']: poll_data})
     
     print(f'get_active_poll: Participating Polls data is {data}')
+    # pprint.PrettyPrinter(width=20).pprint(f'get_active_poll: Participating Polls data is {data}')
     return {'data': data}
 
 def get_poll_history_v2(request: Request) -> dict:
@@ -391,8 +392,9 @@ def get_poll_history(request: Request) -> dict:
 def freeze_vote(request: Request, body: dict) -> dict:
     data = []
     if Poll().IsUserAdmin(request, body['poll_id']):
+        print(body)
         po = Poll_Object(Poll().GetPollObject(request, body['poll_id']))
-        set_clause = {'is_active': 'N'}
+        set_clause = {'is_open': 'N'}
         where_clause = {'vote_id': body['vote_id']}
         Vote(po).UpdateData(set_clause, where_clause)
     return {'data': data}

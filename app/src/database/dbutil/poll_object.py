@@ -9,8 +9,8 @@ class Poll_Object():
         self._poll_name = poll_data['poll_name']
         self._connection_string = poll_data['connection_string']
 
-    # def __str__(self):
-    #     print(self._poll_name)
+    def __str__(self):
+        return(f'[{self.poll_id}]->[{self.poll_name}]->[{self.connection_string}]')
 
     @property
     def poll_id(self):

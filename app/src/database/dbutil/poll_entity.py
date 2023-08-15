@@ -11,10 +11,9 @@ class Poll_Entity:
     _dbInstanceMap = {}
     _cache = {}
     _db_type = None
-    _entity_identifier = {}
     _filters = {}
     # _df = None
-    # _poll_id = 0
+    _poll_id = 0
 
     def __new__(cls, db_type, poll_id = 0):
         # cls._dbInstance = DBConn(db_type)
@@ -23,8 +22,8 @@ class Poll_Entity:
         print(f'Requesting DBConn for {db_type}')
         cls._dbInstanceMap[db_type] = DBConn(db_type)
         try:
-            if cls._instance is None or (True if ('instance_per_poll' in cls._entity_identifier and 
-                                                  cls._entity_identifier['instance_per_poll'] == 'many')
+            if cls._instance is None or (True if ('instance_per_poll' in cls._entity_identifier[poll_id] and 
+                                                  cls._entity_identifier[poll_id]['instance_per_poll'] == 'many')
                                               else False):
                 cls._instance = super(__class__, cls).__new__(cls)
                 cls._poll_id = poll_id
@@ -46,8 +45,8 @@ class Poll_Entity:
 
     @classmethod
     def _isCached(cls) -> bool:
-        if cls._entity_identifier['key'] in cls._cache:
-            return cls._cache[cls._entity_identifier['key']]
+        if cls._entity_identifier[cls._poll_id]['key'] in cls._cache:
+            return cls._cache[cls._entity_identifier[cls._poll_id]['key']]
         else:
             return False
 
@@ -55,17 +54,17 @@ class Poll_Entity:
     def _readData(cls):
         with read_mutex:
             if not cls._isCached():
-                # print(f"Priming [{cls.__name__}].[{cls._poll_id}] using [{cls._entity_identifier}]")
-                print(f"Priming [{cls.__name__}].[{cls._poll_id}] from [{cls._entity_identifier['db_type']}.{cls._entity_identifier['db_name']}.{cls._entity_identifier['table_name']}]")
-                # print(f"Data for [{cls._entity_identifier['key']}] using [{cls._entity_identifier}] before priming {cls._df[cls._poll_id]}")
-                # cls._df = cls._dbInstanceMap[cls._db_type].ReadData(identifier = cls._entity_identifier,
+                # print(f"Priming [{cls.__name__}].[{cls._poll_id}] using [{cls._entity_identifier[cls._poll_id]}]")
+                print(f"Priming [{cls.__name__}].[{cls._poll_id}] from [{cls._entity_identifier[cls._poll_id]['db_type']}.{cls._entity_identifier[cls._poll_id]['db_name']}.{cls._entity_identifier[cls._poll_id]['table_name']}]")
+                # print(f"Data for [{cls._entity_identifier[cls._poll_id]['key']}] using [{cls._entity_identifier[cls._poll_id]}] before priming {cls._df[cls._poll_id]}")
+                # cls._df = cls._dbInstanceMap[cls._db_type].ReadData(identifier = cls._entity_identifier[cls._poll_id],
                 #                                                     filters = cls._filters)
-                cls._df[cls._poll_id] = cls._dbInstanceMap[cls._db_type].ReadData(identifier = cls._entity_identifier,
+                cls._df[cls._poll_id] = cls._dbInstanceMap[cls._db_type].ReadData(identifier = cls._entity_identifier[cls._poll_id],
                                                                     filters = cls._filters)
 
-                # print(f"Data for [{cls._entity_identifier['key']}] using [{cls._entity_identifier}] after priming {cls._df[cls._poll_id]}")
+                # print(f"Data for [{cls._entity_identifier[cls._poll_id]['key']}] using [{cls._entity_identifier[cls._poll_id]}] after priming {cls._df[cls._poll_id]}")
                 
-                cls._updateCache(cls._entity_identifier['key'])
+                cls._updateCache(cls._entity_identifier[cls._poll_id]['key'])
 
 
     @classmethod
@@ -84,9 +83,9 @@ class Poll_Entity:
         try:
             data : {}
             cls._readData()
-            # data = cls._df[cls._df[cls._entity_identifier['pk'] if 'pk' in cls._entity_identifier else 'id'] == id].to_dict("records")
+            # data = cls._df[cls._df[cls._entity_identifier[cls._poll_id]['pk'] if 'pk' in cls._entity_identifier[cls._poll_id] else 'id'] == id].to_dict("records")
             df = cls._df[cls._poll_id]
-            data = df[df[cls._entity_identifier['pk'] if 'pk' in cls._entity_identifier else 'id'] == id].to_dict("records")
+            data = df[df[cls._entity_identifier[cls._poll_id]['pk'] if 'pk' in cls._entity_identifier[cls._poll_id] else 'id'] == id].to_dict("records")
             if len(data) > 0:
                 return data[0]
             return data
@@ -96,8 +95,8 @@ class Poll_Entity:
     @classmethod
     def _getNextId(cls) -> int:
         cls._readData()
-        # return 1 if cls._df is None or len(cls._df) == 0 else cls._df[cls._entity_identifier['pk']].max() + 1
-        return 1 if cls._df[cls._poll_id] is None or len(cls._df[cls._poll_id]) == 0 else cls._df[cls._poll_id][cls._entity_identifier['pk']].max() + 1
+        # return 1 if cls._df is None or len(cls._df) == 0 else cls._df[cls._entity_identifier[cls._poll_id]['pk']].max() + 1
+        return 1 if cls._df[cls._poll_id] is None or len(cls._df[cls._poll_id]) == 0 else cls._df[cls._poll_id][cls._entity_identifier[cls._poll_id]['pk']].max() + 1
     
     @classmethod
     # mode: 
@@ -114,10 +113,12 @@ class Poll_Entity:
             try:
                 if mode in ['a', 'u']:
                     cls._readData()
+                    print(f'_writeData existing data is {cls._df[cls._poll_id]}')
+                    print(f'cls._entity_identifier[cls._poll_id] is {cls._entity_identifier[cls._poll_id]}')
                     if mode == 'a':
                         data = body['data']
                         pk = cls._getNextId()
-                        data[cls._entity_identifier['pk']] = pk
+                        data[cls._entity_identifier[cls._poll_id]['pk']] = pk
                         new_row = pd.DataFrame(data, index=[0])
                         cls._df[cls._poll_id] = pd.concat([cls._df[cls._poll_id], new_row], ignore_index=True)
                         data = [pk]
@@ -133,7 +134,7 @@ class Poll_Entity:
                             # cls._df.loc[cls._df[k] == v, s] = set_clause[s]
                             cls._df[cls._poll_id].loc[cls._df[cls._poll_id][k] == v, s] = body['set_clause'][s]
 
-                cls._dbInstanceMap[cls._db_type].WriteData(identifier = cls._entity_identifier, data=cls._df[cls._poll_id])
+                cls._dbInstanceMap[cls._db_type].WriteData(identifier = cls._entity_identifier[cls._poll_id], data=cls._df[cls._poll_id])
                 return data
             except Exception as err:
                 print(err)
@@ -180,7 +181,7 @@ class Poll_Entity:
     # def WriteData(cls) -> dict:
     #     with write_mutex:
     #         try:
-    #             cls._dbInstanceMap[cls._db_type].WriteData(identifier = cls._entity_identifier, data=cls._df[cls._poll_id])
+    #             cls._dbInstanceMap[cls._db_type].WriteData(identifier = cls._entity_identifier[cls._poll_id], data=cls._df[cls._poll_id])
     #         except Exception as err:
     #             print(err)
     #             return{"exception": err}
@@ -188,13 +189,13 @@ class Poll_Entity:
     @classmethod
     def ResetCache(cls):
         try:
-            cls._cache[cls._entity_identifier['key']] = False
-            return f"Cache Cleared for [{cls._entity_identifier['key']}]"
+            cls._cache[cls._entity_identifier[cls._poll_id]['key']] = False
+            return f"Cache Cleared for [{cls._entity_identifier[cls._poll_id]['key']}]"
         except Exception as err:
             return {"exception": err}
 
     # @classmethod
     # def _addData(cls, data):
-    #     print(cls._entity_identifier)
-    #     cls._dbInstanceMap[cls._db_type].AddData(identifier = cls._entity_identifier, data = data)
+    #     print(cls._entity_identifier[cls._poll_id])
+    #     cls._dbInstanceMap[cls._db_type].AddData(identifier = cls._entity_identifier[cls._poll_id], data = data)
     #     print(data)

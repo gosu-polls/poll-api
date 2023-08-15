@@ -8,6 +8,7 @@ from fastapi import Request
 
 class Poll(Poll_Entity):
     _df = {}
+    _entity_identifier = {}
 
     def __new__(cls):
         try:
@@ -16,11 +17,11 @@ class Poll(Poll_Entity):
             if not hasInstance:
                 cls._df[0] = None
                 cls._instance = super(__class__, cls).__new__(cls, 'googlesheet')
-                cls._entity_identifier = {'key' : __class__.__module__ + '.' + __class__.__name__,
-                                          'pk' : __class__.__name__.lower() + '_id',
-                                          'db_type' : 'googlesheet',
-                                          'db_name': config.poll_db,
-                                          'table_name': __class__.__name__.lower()}
+                cls._entity_identifier[0] = {'key' : __class__.__module__ + '.' + __class__.__name__,
+                                             'pk' : __class__.__name__.lower() + '_id',
+                                             'db_type' : 'googlesheet',
+                                             'db_name': config.poll_db,
+                                             'table_name': __class__.__name__.lower()}
                 cls._filters = {'is_active': 'Y'}
             return cls._instance
         except:
@@ -40,7 +41,6 @@ class Poll(Poll_Entity):
         u = User().GetUser(request)
         data = []
         if u != None:
-            # print(u)
             # For the given email, get the group_id from group_detail
             # For each group_id, get the poll_id from group
             # For each poll_id get poll data from poll
@@ -61,6 +61,7 @@ class Poll(Poll_Entity):
         if u != None:
             # poll_data = Poll().GetDatum(poll_id)
             poll_data = cls.GetDatum(poll_id)
+            print(f'GetPollObject data {poll_data}')
             data = poll_data
         return data
     
@@ -68,7 +69,7 @@ class Poll(Poll_Entity):
     def IsUserAdmin(cls, request: Request, poll_id: int) -> bool:
         u = User().GetUser(request)
         if u!= None:
-            poll = cls.GetDatum()
+            poll = cls.GetDatum(u['user_id'])
             if poll['admin_user_id'] == u['user_id']:
                 return True
         return False
