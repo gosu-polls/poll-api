@@ -32,8 +32,6 @@ class Vote(Vote_Entity):
     def IsVoteActive(cls, u: User, vote_id: int) -> bool:
         if u != None:
             vote = cls.GetDatum(vote_id)
-            print(f'IsVoteActive cls: {cls}')
-            print(f'IsVoteActive vote: {vote}')
             is_open = vote['is_open']
             if is_open.strip() == '':
                 is_open = 'Y'

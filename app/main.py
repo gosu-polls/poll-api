@@ -177,10 +177,10 @@ def freeze_vote(request: Request, body: dict) -> dict:
     data = facade.freeze_vote(request, body)
     return data
 
-@app.post("/updateanswer")
-def update_answer(request: Request, body: dict) -> dict:
-    data = facade.update_answer(request, body)
-    return {'data': data}
+@app.put("/submitanswer")
+def submit_answer(request: Request, body: dict) -> dict:
+    data = facade.submit_answer(request, body)
+    return data
 
 @app.post("/calcpoints")
 def calc_points(request: Request, poll_id: int, vote_id: int = -1):
@@ -190,6 +190,15 @@ def calc_points(request: Request, poll_id: int, vote_id: int = -1):
 def run_tests():
     # TestSuite().test_get_poll(1)
     TestSuite().test_vote_detail()
+    logged_user_id = 1
+    groups = [ {'group_id' : 1, 'group_name': 'apple', 'admin_user_id': 1},
+               {'group_id' : 2, 'group_name': 'androif', 'admin_user_id': 2}
+            ]
+    
+    # data = [g for g in groups]
+    data = [dict(g, is_admin= 'Y' if g['admin_user_id'] == logged_user_id else 'N' ) for g in groups]
+
+    # print(data)
 
 if __name__ == "__main__":
     print("Launching Polls API")  

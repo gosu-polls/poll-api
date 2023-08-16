@@ -56,6 +56,6 @@ class Ballot(Vote_Entity):
             user_data = User().GetData()
             for b in ballot:
                 b['user_data'] = [u for u in user_data if u['user_id'] == b['user_id']]
-            print(f'GetVoteDetailAllUsers: ballot data with user info {ballot}')
+            # print(f'GetVoteDetailAllUsers: ballot data with user info {ballot}')
             data = ballot
         return data

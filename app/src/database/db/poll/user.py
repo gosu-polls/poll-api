@@ -34,7 +34,10 @@ class User(Poll_Entity):
             email = jwt.decode(header['jwt'], 'secret', 'HS256')['email']
 
             users = cls.GetData()
+            # print(f'user.GetUser users {users}')
+
             userList = [u for u in users if u['email'] == email]
+            # print(f'user.GetUser userList {userList}')
             user = userList[0]
 
         return user

@@ -70,7 +70,6 @@ class CosmosDb:
 
     @classmethod
     def ReadData(cls, identifier: dict = {}, filters: dict = {}) -> pd.DataFrame:
-        print(identifier)
         container = cls._dbInstance.get_container_client(identifier['container_name'])
         # response = container.read_item(item=identifier['item_name'], partition_key=identifier['partition_key'])
         response = container.read_item(item='users', partition_key=identifier['partition_key'])

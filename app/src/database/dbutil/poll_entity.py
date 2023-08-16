@@ -74,6 +74,7 @@ class Poll_Entity:
             # data = cls._df.to_dict("records")
             # print(f"GetData for {cls}.{cls._poll_id} -> {cls._df[cls._poll_id]} ")
             data = cls._df[cls._poll_id].to_dict("records")
+            # print(f"poll_entity -> GetData for {cls._entity_identifier[cls._poll_id]['table_name']} is {data}")            
             return data
         except Exception as err:
             print(str(err))
@@ -124,16 +125,25 @@ class Poll_Entity:
                         cls._df[cls._poll_id] = pd.concat([cls._df[cls._poll_id], new_row], ignore_index=True)
                         data = [pk]
                     elif mode == 'u':
-                        # Assumption is we have one where clause
-                        k = ''
-                        v = ''
-                        if (len(body['where_clause']) > 0):
-                            k = list(body['where_clause'].keys())[0]
-                            v = body['where_clause'][k]
+                        # print(f"_writeData printing body -> {body['block_data_df']}")
+                        # if len(body['block_data_df'].index) > 0:
+                        if body['block_data_df'] is not None:
+                            # print(f'_write_data before {cls._df[cls._poll_id]}')
+                            cls._df[cls._poll_id].set_index(cls._entity_identifier[cls._poll_id]['pk'] if 'pk' in cls._entity_identifier[cls._poll_id] else 'id', inplace = True)
+                            cls._df[cls._poll_id].update(body['block_data_df'].set_index(cls._entity_identifier[cls._poll_id]['pk'] if 'pk' in cls._entity_identifier[cls._poll_id] else 'id'))
+                            cls._df[cls._poll_id].reset_index(inplace = True)
+                            # print(f'_write_data after {cls._df[cls._poll_id]}')
+                        else:
+                            # Assumption is we have one where clause
+                            k = ''
+                            v = ''
+                            if (len(body['where_clause']) > 0):
+                                k = list(body['where_clause'].keys())[0]
+                                v = body['where_clause'][k]
                         
-                        for s in body['set_clause']:
-                            # cls._df.loc[cls._df[k] == v, s] = set_clause[s]
-                            cls._df[cls._poll_id].loc[cls._df[cls._poll_id][k] == v, s] = body['set_clause'][s]
+                            for s in body['set_clause']:
+                                # cls._df.loc[cls._df[k] == v, s] = set_clause[s]
+                                cls._df[cls._poll_id].loc[cls._df[cls._poll_id][k] == v, s] = body['set_clause'][s]
 
                 cls._dbInstanceMap[cls._db_type].WriteData(identifier = cls._entity_identifier[cls._poll_id], data=cls._df[cls._poll_id])
                 return data
@@ -154,11 +164,14 @@ class Poll_Entity:
         # return cls._df[cls._poll_id].to_dict("records")
 
     @classmethod
-    def UpdateData(cls, set_clause: dict, where_clause: dict = None) -> dict:
+    def UpdateData(cls, set_clause: dict = None, where_clause: dict = None, block_data_df: list = None) -> dict:
         body = {
                     'set_clause': set_clause,
-                    'where_clause': where_clause
+                    'where_clause': where_clause,
+                    'block_data_df' : block_data_df
                }
+        
+        # print(f'UpdateData -> body {body}')
         cls._writeData(mode='u', body=body)
         
         # cls._readData()

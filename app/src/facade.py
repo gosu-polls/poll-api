@@ -16,6 +16,7 @@ from src.database.db.vote.ballot import Ballot as Ballot
 
 import uuid
 from datetime import datetime, timedelta
+import pandas as pd
 
 
 def get_available_polls(request: Request) -> dict:
@@ -78,10 +79,11 @@ def join_group(request: Request, body: dict) -> dict:
         else:
             requested_group_id = requested_group[0]
             group_detail = Group_Detail().GetData()
-            if len([g for g in group_detail if g['group_id'] == requested_group_id and g['email'] == u['email']]) > 0:
+            if len([g for g in group_detail if g['group_id'] == requested_group_id and g['user_id'] == u['user_id']]) > 0:
                 data.append('User already part of Group')
             else:
                 new_group_detail = {'group_id': requested_group_id,
+                                    'user_id': u['user_id'],
                                     'email': u['email'],
                                     'joined_on': datetime.utcnow().strftime("%Y-%m-%d %H%M%S")
                 }
@@ -94,13 +96,13 @@ def save_vote(request: Request, body: dict) -> dict:
     data = []
     if u != None:
         # find the participating poll using poll id
-        print(f'save_vote: The ballot for {u} is {body}')
+        # print(f'save_vote: The ballot for {u} is {body}')
 
         po = Poll_Object(Poll().GetPollObject(u, body['poll_id']))
-        print(f'save_vote : po is {po}')
+        # print(f'save_vote : po is {po}')
         if Vote(po).IsVoteActive(u, body['vote_id']):
             existing_ballot_vote = Ballot(po).GetUserVoteDetail(u, body['vote_id'])
-            print(f'save_vote: Existing Ballot Vote is {existing_ballot_vote}')
+            # print(f'save_vote: Existing Ballot Vote is {existing_ballot_vote}')
             if len(existing_ballot_vote) == 0:
                 new_ballot_vote = {
                     'vote_id': body['vote_id'],
@@ -117,7 +119,7 @@ def save_vote(request: Request, body: dict) -> dict:
                 where_clause = {
                     'ballot_id': existing_ballot_vote['ballot_id']
                 }
-                Ballot(po).UpdateData(set_clause, where_clause)
+                Ballot(po).UpdateData(set_clause=set_clause, where_clause=where_clause)
 
             # poll_id = Poll().GetDatum(body['poll_id'])
             
@@ -131,6 +133,7 @@ def save_vote(request: Request, body: dict) -> dict:
 def get_participating_polls(request: Request) -> dict:
     u = User().GetUser(request)
     data = []
+    # print(f'get_participating_polls -> u {u}')
     if u != None:
         data = Poll().GetParticipatingPolls(u)
     # data = Poll().GetParticipatingPolls(request)
@@ -177,11 +180,11 @@ def get_active_poll(u : User) -> dict:
             # print('get_active_poll: v: ', v)
             poll_data.append(v)
         data.append({'poll_id': pp['poll_id'],
-                        'is_admin': 'Y' if pp['admin_user_id'] == u['user_id'] else 'N',
-                        'data': poll_data})
+                     'is_admin': 'Y' if pp['admin_user_id'] == u['user_id'] else 'N',
+                     'data': poll_data})
         # data.append({pp['poll_id']: poll_data})
     
-    print(f'get_active_poll: Participating Polls data is {data}')
+    # print(f'get_active_poll: Participating Polls data is {data}')
     # pprint.PrettyPrinter(width=20).pprint(f'get_active_poll: Participating Polls data is {data}')
     return data
 
@@ -369,33 +372,28 @@ def freeze_vote(request: Request, body: dict) -> dict:
     data = []
     if u != None:
         if Poll().IsUserAdmin(u, body['poll_id']):
-            print(body)
+            # print(body)
             po = Poll_Object(Poll().GetPollObject(u, body['poll_id']))
             set_clause = {'is_open': 'N' if body['is_open'] == 'Y' else 'Y'}
             where_clause = {'vote_id': body['vote_id']}
-            Vote(po).UpdateData(set_clause, where_clause)
+            Vote(po).UpdateData(set_clause=set_clause, where_clause=where_clause)
             data = get_active_poll(u)
     return {'data': data}
 
-def update_answer(request: Request, body: dict) -> dict:
+def submit_answer(request: Request, body: dict) -> dict:
     u = User().GetUser(request)
     data = []
+    # print(f'submit_answer body from UI is: {body}')
+    # print(body)
     if u != None:
         if Poll().IsUserAdmin(u, body['poll_id']):
             po = Poll_Object(Poll().GetPollObject(u, body['poll_id']))
+            block_data = body['vote_detail']
+            block_data_df = pd.DataFrame(block_data)
+            block_data_df['updated_at'] = datetime.utcnow().strftime("%Y-%m-%d %H%M%S")
+            Vote_Detail(po).UpdateData(block_data_df=block_data_df)
             
-            # Update all answers to N for all vote_detail records under the vote.
-            set_clause = {'is_right' : 'N',
-                        'updated_at': datetime.utcnow().strftime("%Y-%m-%d %H%M%S")}
-            where_clause = {'vote_id': body['vote_id']}
-            Vote_Detail(po).UpdateData(set_clause, where_clause)
-            
-            # Update the answer to Y for the vote_detail record.
-            set_clause = {'is_right' : 'Y',
-                        'updated_at': datetime.utcnow().strftime("%Y-%m-%d %H%M%S")}
-            where_clause = {'vote_detail_id': body['vote_detail_id']}
-            Vote_Detail(po).UpdateData(set_clause, where_clause)
-
+        data = get_active_poll(u)
     return {'data': data}
 
 
