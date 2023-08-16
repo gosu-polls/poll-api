@@ -182,9 +182,9 @@ def submit_answer(request: Request, body: dict) -> dict:
     data = facade.submit_answer(request, body)
     return data
 
-@app.post("/calcpoints")
-def calc_points(request: Request, poll_id: int, vote_id: int = -1):
-    data = facade.calc_points(request, poll_id, vote_id)
+@app.put("/calcpoints")
+def calc_points(request: Request, body: dict):
+    data = facade.calc_points(request, body)
     return data
 
 def run_tests():

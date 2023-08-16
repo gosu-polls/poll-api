@@ -397,7 +397,7 @@ def submit_answer(request: Request, body: dict) -> dict:
     return {'data': data}
 
 
-def calc_points(request: Request, poll_id: int, vote_id: int = -1) -> dict:
+def calc_points(request: Request, body: dict) -> dict:
     u = User().GetUser(request)
     data = []
     if u != None:
