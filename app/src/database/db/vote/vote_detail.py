@@ -24,3 +24,9 @@ class Vote_Detail(Vote_Entity):
             return cls._instance
         except:
             return None
+
+    @classmethod
+    def GetRightAnswers(cls) -> list:
+        data = None
+        data = cls.GetFilteredData({'is_right' : 'Y'})
+        return data

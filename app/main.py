@@ -7,12 +7,14 @@ import src.facade as facade
 from src.database.db.test.match import Match as Match
 from src.database.db.test.country import Country as Country
 from src.database.db.poll.group import Group as Group
+from src.database.db.poll.poll import Poll as Poll
+from src.database.db.poll.point_config import Point_Config as Point_Config
 
 from src.database.db.test.cosmos.country_v2 import Country as Country_v2
 from src.database.db.test.cosmos.user import User as User
 
 from test.t_polls import TestSuite as TestSuite
-
+import pandas as pd
 # import functools
 from dotenv import load_dotenv
 
@@ -187,18 +189,150 @@ def calc_points(request: Request, body: dict):
     data = facade.calc_points(request, body)
     return data
 
+@app.get("/grouppoints")
+def get_group_points(request: Request, body: dict) -> dict:
+    data = facade.get_group_points(request, body)
+    return data
+
 def run_tests():
     # TestSuite().test_get_poll(1)
-    TestSuite().test_vote_detail()
+    # TestSuite().test_vote_detail()
     logged_user_id = 1
     groups = [ {'group_id' : 1, 'group_name': 'apple', 'admin_user_id': 1},
                {'group_id' : 2, 'group_name': 'androif', 'admin_user_id': 2}
             ]
     
     # data = [g for g in groups]
-    data = [dict(g, is_admin= 'Y' if g['admin_user_id'] == logged_user_id else 'N' ) for g in groups]
+    # data = [dict(g, is_admin= 'Y' if g['admin_user_id'] == logged_user_id else 'N' ) for g in groups]
 
     # print(data)
+    votes = {
+        'vote_id' : [1, 2, 3, 4, 5],
+        'vote_title' : ['ENG vs NZ', 'NED vs PAK', 'AFG vs BAN', 'RSA vs SRI', 'IND vs AUS'],
+        'is_open': ['N', 'Y', '', '', '']
+    }
+    df = pd.DataFrame(votes)
+    filter = {'is_open': 'N'}
+    k = list(filter.keys())[0]
+    v = filter[k]
+    # print(k, v)
+    # print(df)
+    # print(df.loc[df[k] == v])
+
+    # User:     vote_id         is_right    vote_id             is_right    points
+    # 1 - KG    1 - Eng vs NZ   Y           2 - NED vs PAK      N           2 - 1 = 1
+    # 2 - SM    1 - Eng vs Nz   Y           2 - NED vs PAK      Y           2 + 2 = 4
+    # 3 - AG    1 - Eng vs Nz   N           2 - NED vs PAK      Y          -1 + 2 = 1 
+    # 4 - KK                                2 - NED vs PAK      Y           0 + 2 = 2
+    # 5 - AR    1 - Eng vs Nz   N                                          -1 + 0 = -1
+
+    point_config = {'right': 2, 'wrong': -2}
+    poll_id = 3
+    point_config_id = Poll().GetDatum(poll_id)['point_config_id']
+    print(point_config_id)
+    if '{}'.format(point_config_id).isdigit():
+        print('if')
+        point_config = Point_Config().GetDatum(point_config_id)
+        print(f'if {point_config}')
+    else:
+        print('else')
+        point_config_data = Point_Config().GetFilteredData({'point_config_name' : 'default'})
+        print(f'else {point_config_data}')
+        if len(point_config_data) > 0:
+            point_config = point_config_data[0]
+    
+    # print(point_config_data)
+    # if len(point_config_data) > 0:
+    #     point_config = point_config_data[0]
+    # else:
+    #     point_config = {'right': 2, 'wrong': 0}        
+    
+    print(point_config)
+    ballot = [ {'ballot_id': -1, 'vote_id': -1, 'user_id': -1, 'vote_detail_id': -1, 'points': ''},
+               
+               {'ballot_id': 0,  'vote_id': 1,  'user_id': 1,  'vote_detail_id': 2,  'points': ''},
+               {'ballot_id': 1,  'vote_id': 1,  'user_id': 2,  'vote_detail_id': 2,  'points': ''},
+               {'ballot_id': 2,  'vote_id': 1,  'user_id': 3,  'vote_detail_id': 1,  'points': ''},
+               {'ballot_id': 3,  'vote_id': 1,  'user_id': 5,  'vote_detail_id': 3,  'points': ''},
+
+               {'ballot_id': 4,  'vote_id': 2,  'user_id': 1,  'vote_detail_id': 4,  'points': ''},
+               {'ballot_id': 5,  'vote_id': 2,  'user_id': 2,  'vote_detail_id': 6,  'points': ''},
+               {'ballot_id': 6,  'vote_id': 2,  'user_id': 3,  'vote_detail_id': 6,  'points': ''},
+               {'ballot_id': 7,  'vote_id': 2,  'user_id': 4,  'vote_detail_id': 6,  'points': ''},
+             ]
+    vote_detail = [ {'vote_detail_id': 1, 'vote_id': 1, 'option': 'Eng', 'is_right': 'N'},
+                    {'vote_detail_id': 2, 'vote_id': 1, 'option': 'Nz', 'is_right': 'Y'},
+                    {'vote_detail_id': 3, 'vote_id': 1, 'option': 'NR/Tie', 'is_right': 'N'},
+                    {'vote_detail_id': 4, 'vote_id': 2, 'option': 'Ned', 'is_right': 'N'},
+                    {'vote_detail_id': 5, 'vote_id': 2, 'option': 'Pak', 'is_right': 'N'},
+                    {'vote_detail_id': 6, 'vote_id': 2, 'option': 'NR/Tie', 'is_right': 'Y'}
+                  ]	
+
+    vote = [ {'vote_id': 1, 'vote_title': 'ENG vs NZ', 'valid_from': '', 'valid_to': '2023-10-05 080000', 'is_open': 'N'},
+             {'vote_id': 2, 'vote_title': 'NED vs PAK', 'valid_from': '', 'valid_to': '2023-10-06 080000', 'is_open': 'N'},
+             {'vote_id': 3, 'vote_title': 'AFG vs BAN', 'valid_from': '2023-10-06 043000', 'valid_to': '2023-10-07 043000', 'is_open': ''},
+             {'vote_id': 4, 'vote_title': 'RSA vs SRI', 'valid_from': '2023-10-06 080000', 'valid_to': '2023-10-07 080000', 'is_open': ''},
+             {'vote_id': 5, 'vote_title': 'IND vs AUS', 'valid_from': '2023-10-07 080000', 'valid_to': '2023-10-08 080000', 'is_open': ''}
+           ]
+
+    # print([[dict(b, points=2 if vd['is_right'] == 'Y' else -1 ), vd] for b in ballot for
+    #         vd in vote_detail if vd['vote_id'] in 
+    #             [v['vote_id'] for v in vote if v['is_open'] == 'N']
+    #         if b['vote_detail_id'] == vd['vote_detail_id']
+            
+    #       ]
+    #      )
+
+
+    print([dict(b, points = point_config['right'] if vd['is_right'] == 'Y' else point_config['wrong'] ) for b in ballot for
+            vd in vote_detail if vd['vote_id'] in 
+                [v['vote_id'] for v in vote if v['is_open'] == 'N']
+            if b['vote_detail_id'] == vd['vote_detail_id']
+            
+          ]
+         )
+    
+    [
+        {'ballot_id': 0, 'vote_id': 1, 'user_id': 1, 'vote_detail_id': 2, 'points': 2}, 
+        {'ballot_id': 1, 'vote_id': 1, 'user_id': 2, 'vote_detail_id': 2, 'points': 2}, 
+        {'ballot_id': 2, 'vote_id': 1, 'user_id': 3, 'vote_detail_id': 1, 'points': -1}, 
+        {'ballot_id': 3, 'vote_id': 1, 'user_id': 5, 'vote_detail_id': 3, 'points': -1}, 
+        {'ballot_id': 4, 'vote_id': 2, 'user_id': 1, 'vote_detail_id': 4, 'points': -1}, 
+        {'ballot_id': 5, 'vote_id': 2, 'user_id': 2, 'vote_detail_id': 6, 'points': 2}, 
+        {'ballot_id': 6, 'vote_id': 2, 'user_id': 3, 'vote_detail_id': 6, 'points': 2}, 
+        {'ballot_id': 7, 'vote_id': 2, 'user_id': 4, 'vote_detail_id': 6, 'points': 2}]
+
+    [
+        [{'ballot_id': 0, 'vote_id': 1, 'user_id': 1, 'vote_detail_id': 2, 'points': 2}, 
+         {'vote_detail_id': 2, 'vote_id': 1, 'option': 'Nz', 'is_right': 'Y'}], 
+        [{'ballot_id': 1, 'vote_id': 1, 'user_id': 2, 'vote_detail_id': 2, 'points': 2}, 
+         {'vote_detail_id': 2, 'vote_id': 1, 'option': 'Nz', 'is_right': 'Y'}], 
+        [{'ballot_id': 2, 'vote_id': 1, 'user_id': 3, 'vote_detail_id': 1, 'points': -1}, 
+         {'vote_detail_id': 1, 'vote_id': 1, 'option': 'Eng', 'is_right': 'N'}], 
+        [{'ballot_id': 3, 'vote_id': 1, 'user_id': 5, 'vote_detail_id': 3, 'points': -1}, 
+         {'vote_detail_id': 3, 'vote_id': 1, 'option': 'NR/Tie', 'is_right': 'N'}], 
+        [{'ballot_id': 4, 'vote_id': 2, 'user_id': 1, 'vote_detail_id': 4, 'points': -1}, 
+         {'vote_detail_id': 4, 'vote_id': 2, 'option': 'Ned', 'is_right': 'N'}], 
+        [{'ballot_id': 5, 'vote_id': 2, 'user_id': 2, 'vote_detail_id': 6, 'points': 2}, 
+         {'vote_detail_id': 6, 'vote_id': 2, 'option': 'NR/Tie', 'is_right': 'Y'}], 
+        [{'ballot_id': 6, 'vote_id': 2, 'user_id': 3, 'vote_detail_id': 6, 'points': 2}, 
+         {'vote_detail_id': 6, 'vote_id': 2, 'option': 'NR/Tie', 'is_right': 'Y'}], 
+        [{'ballot_id': 7, 'vote_id': 2, 'user_id': 4, 'vote_detail_id': 6, 'points': 2}, 
+         {'vote_detail_id': 6, 'vote_id': 2, 'option': 'NR/Tie', 'is_right': 'Y'}]
+    ]
+
+    # [{'ballot_id': -1, 'vote_id': -1, 'user_id': -1, 'vote_detail_id': -1, 'points': ''}, 
+    #  {'ballot_id': -1, 'vote_id': -1, 'user_id': -1, 'vote_detail_id': -1, 'points': ''}, 
+    #  {'ballot_id': -1, 'vote_id': -1, 'user_id': -1, 'vote_detail_id': -1, 'points': ''}, 
+    #  {'ballot_id': -1, 'vote_id': -1, 'user_id': -1, 'vote_detail_id': -1, 'points': ''}, 
+    #  {'ballot_id': -1, 'vote_id': -1, 'user_id': -1, 'vote_detail_id': -1, 'points': ''}, 
+    #  {'ballot_id': -1, 'vote_id': -1, 'user_id': -1, 'vote_detail_id': -1, 'points': ''}, 
+    #  {'ballot_id': 0, 'vote_id': 1, 'user_id': 1, 'vote_detail_id': 1, 'points': ''}, 
+    #  {'ballot_id': 0, 'vote_id': 1, 'user_id': 1, 'vote_detail_id': 1, 'points': ''}, {'ballot_id': 0, 'vote_id': 1, 'user_id': 1, 'vote_detail_id': 1, 'points': ''}, {'ballot_id': 0, 'vote_id': 1, 'user_id': 1, 'vote_detail_id': 1, 'points': ''}, {'ballot_id': 0, 'vote_id': 1, 'user_id': 1, 'vote_detail_id': 1, 'points': ''}, {'ballot_id': 0, 'vote_id': 1, 'user_id': 1, 'vote_detail_id': 1, 'points': ''}, {'ballot_id': 1, 'vote_id': 2, 'user_id': 1, 'vote_detail_id': 6, 'points': ''}, {'ballot_id': 1, 'vote_id': 2, 'user_id': 1, 'vote_detail_id': 6, 'points': ''}, {'ballot_id': 1, 'vote_id': 2, 'user_id': 1, 'vote_detail_id': 6, 'points': ''}, {'ballot_id': 1, 'vote_id': 2, 'user_id': 1, 'vote_detail_id': 6, 'points': ''}, {'ballot_id': 1, 'vote_id': 2, 'user_id': 1, 'vote_detail_id': 6, 'points': ''}, {'ballot_id': 1, 'vote_id': 2, 'user_id': 1, 'vote_detail_id': 6, 'points': ''}]
+
+    # print([dict(b, points= 2 if b['vote_detail_id']) for b in ballot])
+    # print([r for r in vote_detail if r['is_right'] == 'Y'])
+    
 
 if __name__ == "__main__":
     print("Launching Polls API")  

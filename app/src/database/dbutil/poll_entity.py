@@ -95,6 +95,20 @@ class Poll_Entity:
             return {"exception": err}
 
     @classmethod
+    def GetFilteredData(cls, where_clause : dict) -> list:
+        try:
+            data = []
+            # Assumption is that the where clause will have only one filter
+            k = list(where_clause.keys())[0]
+            v = where_clause[k]
+            cls._readData()
+            df = cls._df[cls._poll_id].loc[cls._df[cls._poll_id][k] == v]
+            data = df.to_dict("records")
+            return data
+        except Exception as err:
+            return {"exception": err}
+
+    @classmethod
     def _getNextId(cls) -> int:
         cls._readData()
         # return 1 if cls._df is None or len(cls._df) == 0 else cls._df[cls._entity_identifier[cls._poll_id]['pk']].max() + 1

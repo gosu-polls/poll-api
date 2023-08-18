@@ -6,6 +6,7 @@ from fastapi import Request
 from src.database.db.poll.group import Group as Group
 from src.database.db.poll.group_detail import Group_Detail as Group_Detail
 from src.database.db.poll.poll import Poll as Poll
+from src.database.db.poll.point_config import Point_Config as Point_Config
 from src.database.db.poll.user import User as User
 
 from src.database.dbutil.poll_object import Poll_Object as Poll_Object
@@ -98,9 +99,9 @@ def save_vote(request: Request, body: dict) -> dict:
         # find the participating poll using poll id
         # print(f'save_vote: The ballot for {u} is {body}')
 
-        po = Poll_Object(Poll().GetPollObject(u, body['poll_id']))
+        po = Poll_Object(Poll().GetPollObject(body['poll_id']))
         # print(f'save_vote : po is {po}')
-        if Vote(po).IsVoteActive(u, body['vote_id']):
+        if Vote(po).IsVoteActive(body['vote_id']):
             existing_ballot_vote = Ballot(po).GetUserVoteDetail(u, body['vote_id'])
             # print(f'save_vote: Existing Ballot Vote is {existing_ballot_vote}')
             if len(existing_ballot_vote) == 0:
@@ -175,6 +176,7 @@ def get_active_poll(u : User) -> dict:
             # print(f'get_active_poll: ballot for vote {v} is {ballot}')
             # v['selected_vote_detail_id'] = -1 # this is just a hack
             v['selected_vote_detail_id'] = ballot['vote_detail_id'] if 'vote_detail_id' in ballot else -1
+            # v['submitted_right_answer'] = vote_detail
             vd = [vd for vd in vote_detail if vd['vote_id'] == v['vote_id']]
             v['vote_detail'] = vd
             # print('get_active_poll: v: ', v)
@@ -373,7 +375,7 @@ def freeze_vote(request: Request, body: dict) -> dict:
     if u != None:
         if Poll().IsUserAdmin(u, body['poll_id']):
             # print(body)
-            po = Poll_Object(Poll().GetPollObject(u, body['poll_id']))
+            po = Poll_Object(Poll().GetPollObject(body['poll_id']))
             set_clause = {'is_open': 'N' if body['is_open'] == 'Y' else 'Y'}
             where_clause = {'vote_id': body['vote_id']}
             Vote(po).UpdateData(set_clause=set_clause, where_clause=where_clause)
@@ -387,11 +389,11 @@ def submit_answer(request: Request, body: dict) -> dict:
     # print(body)
     if u != None:
         if Poll().IsUserAdmin(u, body['poll_id']):
-            po = Poll_Object(Poll().GetPollObject(u, body['poll_id']))
-            block_data = body['vote_detail']
-            block_data_df = pd.DataFrame(block_data)
-            block_data_df['updated_at'] = datetime.utcnow().strftime("%Y-%m-%d %H%M%S")
-            Vote_Detail(po).UpdateData(block_data_df=block_data_df)
+            po = Poll_Object(Poll().GetPollObject(body['poll_id']))
+            vote_detail_data = body['vote_detail']
+            vote_detail_data_df = pd.DataFrame(vote_detail_data)
+            vote_detail_data_df['updated_at'] = datetime.utcnow().strftime("%Y-%m-%d %H%M%S")
+            Vote_Detail(po).UpdateData(block_data_df=vote_detail_data_df)
             
         data = get_active_poll(u)
     return {'data': data}
@@ -401,9 +403,91 @@ def calc_points(request: Request, body: dict) -> dict:
     u = User().GetUser(request)
     data = []
     if u != None:
+        if Poll().IsUserAdmin(u, body['poll_id']):
+            point_config_data = Point_Config().GetPointsConfigForPoll(poll_id=body['poll_id'])
+
+            po = Poll_Object(Poll().GetPollObject(body['poll_id']))
+            ballot = Ballot(po).GetData()
+            vote_detail = Vote_Detail(po).GetData()
+            vote = Vote(po).GetData()
+            ballot_data = [dict(b, points = point_config_data['right'] if vd['is_right'] == 'Y' else point_config_data['wrong'] ) for b in ballot for
+                            vd in vote_detail if vd['vote_id'] in 
+                                [v['vote_id'] for v in vote if v['is_open'] == 'N']
+                                    if b['vote_detail_id'] == vd['vote_detail_id']            
+                          ]
+            ballot_data_df = pd.DataFrame(ballot_data)
+            ballot_data_df['updated_at'] = datetime.utcnow().strftime("%Y-%m-%d %H%M%S")
+            Ballot(po).UpdateData(block_data_df=ballot_data_df)
+    return {'data': data}
+
+def get_group_points(request: Request, body: dict) -> dict:
+    u = User().GetUser(request)
+    data = []
+    if u != None:
+        # Find all the groups the user is associated with under this poll.
+        # Get group wise split for this poll
+        # Assume the user is part of two group viz., office, friends.
+        # The output must be like this:
+        [
+            {
+                'group_name': 'office',
+                'points_data': [
+                                    {'user': {'name': 'Kiran Gosu', 'Initials' : 'KG', 'Picture': 'url'},
+                                    'consolidated_points': 1,
+                                    'split': [{
+                                                    'ENG vs NZ': -1,
+                                                    'NED vs PAK': 2,
+                                                    'AFG vs BAN': 0
+                                                }]
+                                    },
+                                    {'user': {'name': 'Anand', 'Initials' : 'AJ', 'Picture': 'url'},
+                                    'consolidated_points': 3,
+                                    'split': [{
+                                                    'ENG vs NZ': 2,
+                                                    'NED vs PAK': 2,
+                                                    'AFG vs BAN': -1
+                                                }]
+                                    },
+                                    {'user': {'name': 'Praveen', 'Initials' : 'PS', 'Picture': 'url'},
+                                    'consolidated_points': 0,
+                                    'split': [{
+                                                    'ENG vs NZ': 2,
+                                                    'NED vs PAK': -1,
+                                                    'AFG vs BAN': -1
+                                                }]
+                                    }
+                ]
+            },
+
+            {
+                'group_name': 'friends',
+                'points_data': [
+                                    {'user': {'name': 'Kiran Gosu', 'Initials' : 'KG', 'Picture': 'url'},
+                                    'consolidated_points': 1,
+                                    'split': [{
+                                                    'ENG vs NZ': -1,
+                                                    'NED vs PAK': 2,
+                                                    'AFG vs BAN': 0
+                                                }]
+                                    },
+                                    {'user': {'name': 'Sivapragasam Muthu', 'Initials' : 'SM', 'Picture': 'url'},
+                                    'consolidated_points': 6,
+                                    'split': [{
+                                                    'ENG vs NZ': 2,
+                                                    'NED vs PAK': 2,
+                                                    'AFG vs BAN': 2
+                                                }]
+                                    },
+                                    {'user': {'name': 'Arunmozhidevan G', 'Initials' : 'AG', 'Picture': 'url'},
+                                    'consolidated_points': 3,
+                                    'split': [{
+                                                    'ENG vs NZ': 2,
+                                                    'NED vs PAK': 2,
+                                                    'AFG vs BAN': -1
+                                                }]
+                                    }
+                ]
+            }
+        ]
         pass
-        
-        # Check if the user is admin for the poll_id (cwc/fifa etc)
-        # If yes, then proceed, else return
-        #   Find the votes (eng vs aus or bra vs arg) 
     return {'data': data}

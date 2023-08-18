@@ -28,11 +28,18 @@ class Vote(Vote_Entity):
             print(str(err))
             return None
 
-    classmethod
-    def IsVoteActive(cls, u: User, vote_id: int) -> bool:
-        if u != None:
-            vote = cls.GetDatum(vote_id)
-            is_open = vote['is_open']
-            if is_open.strip() == '':
-                is_open = 'Y'
-            return True if is_open.upper() == 'Y' else False
+    @classmethod
+    def IsVoteActive(cls, vote_id: int) -> bool:
+        vote = cls.GetDatum(vote_id)
+        is_open = vote['is_open']
+        if is_open.strip() == '':
+            is_open = 'Y'
+        return True if is_open.upper() == 'Y' else False
+        
+
+    @classmethod
+    def GetClosedVotes(cls) -> list:
+        data = None
+        data = cls.GetFilteredData({'is_open' : 'N'})
+        # print(f'GetClosedVotes -> {data}')
+        return data

@@ -37,7 +37,7 @@ class Poll(Poll_Entity):
     def GetParticipatingPolls(cls, u : User) -> list:
         data = []
         if u != None:
-            print(f'GetParticipatingPolls -> user data {u}')
+            # print(f'GetParticipatingPolls -> user data {u}')
             # For the given email, get the group_id from group_detail
             # For each group_id, get the poll_id from group
             # For each poll_id get poll data from poll
@@ -55,13 +55,8 @@ class Poll(Poll_Entity):
         return data
     
     @classmethod
-    def GetPollObject(cls, u: User, poll_id: int) -> dict:
-        data = None
-        if u != None:
-            # poll_data = Poll().GetDatum(poll_id)
-            poll_data = cls.GetDatum(poll_id)
-            # print(f'GetPollObject data {poll_data}')
-            data = poll_data
+    def GetPollObject(cls, poll_id: int) -> dict:
+        data = cls.GetDatum(poll_id)
         return data
     
     @classmethod

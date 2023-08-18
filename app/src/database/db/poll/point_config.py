@@ -25,14 +25,24 @@ class Point_Config(Poll_Entity):
 
     @classmethod
     def GetPointsConfigForPoll(cls, poll_id: int):
-        data = []
-        point_config = cls.GetData()
-        poll_data = Poll().GetDatum(poll_id)
-        point_config_for_poll = [pc for pc in point_config if point_config['point_config_id'] == poll_data['point_config_id']]
-        if len(point_config_for_poll) == 0:
-            point_config_for_poll = [pc for pc in point_config if point_config['point_config_name'] == 'default']
-        if len(point_config_for_poll) == 0:
-            point_config_for_poll = [{'right': 2,
-                                      'wrong': 0}]
-        data = point_config_for_poll[0]
+        # data = []
+        # point_config = cls.GetData()
+        # poll_data = Poll().GetDatum(poll_id)
+        # point_config_for_poll = [pc for pc in point_config if point_config['point_config_id'] == poll_data['point_config_id']]
+        # if len(point_config_for_poll) == 0:
+        #     point_config_for_poll = [pc for pc in point_config if point_config['point_config_name'] == 'default']
+        # if len(point_config_for_poll) == 0:
+        #     point_config_for_poll = [{'right': 2,
+        #                               'wrong': 0}]
+        # data = point_config_for_poll[0]
+
+        data = {'right': 2, 'wrong': -2}
+        point_config_id = Poll().GetDatum(poll_id)['point_config_id']
+        if '{}'.format(point_config_id).isdigit():
+            data = Point_Config().GetDatum(point_config_id)
+        else:
+            point_config_data = Point_Config().GetFilteredData({'point_config_name' : 'default'})
+            if len(point_config_data) > 0:
+                data = point_config_data[0]
+        
         return data
