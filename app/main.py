@@ -116,7 +116,7 @@ def get_countries() -> dict:
         data = Country().GetData()
         return {"data": data}
     except Exception as err:
-        return {"exception": err}
+        return {"exception": str(err)}
     
 @app.get("/countries/{id}")
 def get_match(id : int) -> dict:
