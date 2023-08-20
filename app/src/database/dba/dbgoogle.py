@@ -15,12 +15,15 @@ class GoogleSheet:
             scopes = ['https://www.googleapis.com/auth/spreadsheets',
                       'https://www.googleapis.com/auth/drive']
 
+            private_key = os.getenv("GOOGLE_PRIVATE_KEY")
+            private_key = private_key.replace("||", "\n")
+            print(f'The replaced ones is {private_key}')
             print(f'{os.getenv("GOOGLE_PRIVATE_KEY")}')
             print(f'{env["GOOGLE_PRIVATE_KEY"]}')
             keyfile_dict = {"type": "service_account",
                             "project_id": os.getenv("GOOGLE_PROJECT_ID"),
                             "private_key_id": os.getenv("GOOGLE_PRIVATE_KEY_ID"),
-                            "private_key": os.getenv("GOOGLE_PRIVATE_KEY"),
+                            "private_key": private_key,
                             "client_email": os.getenv("GOOGLE_CLIENT_EMAIL"),
                             "client_id": os.getenv("GOOGLE_CLIENT_ID"),
                             "auth_uri": "https://accounts.google.com/o/oauth2/auth",
