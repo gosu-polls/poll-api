@@ -16,10 +16,10 @@ from src.database.db.test.cosmos.user import User as User
 from test.t_polls import TestSuite as TestSuite
 import pandas as pd
 # import functools
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 
 app = FastAPI()
-# load_dotenv()
+load_dotenv()
 origins = [
     "http://localhost",
     "http://localhost:8080",
@@ -100,7 +100,7 @@ def get_matches() -> dict:
         data = Match().GetData()
         return {"data": data}
     except Exception as err:
-        return {"exception": err}
+        return {"exception": str(err)}
     
 @app.get("/matches/{id}")
 def get_match(id : int) -> dict:
@@ -108,7 +108,7 @@ def get_match(id : int) -> dict:
         data = Match().GetDatum(id)
         return {"data": data}
     except Exception as err:
-        return {"exception": err}
+        return {"exception": str(err)}
         
 @app.get("/countries")
 def get_countries() -> dict:
