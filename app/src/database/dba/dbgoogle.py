@@ -2,7 +2,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from gspread_dataframe import get_as_dataframe, set_with_dataframe
 import os
-# from os import environ as env
+from os import environ as env
 import pandas as pd
 
 class GoogleSheet:
@@ -15,6 +15,8 @@ class GoogleSheet:
             scopes = ['https://www.googleapis.com/auth/spreadsheets',
                       'https://www.googleapis.com/auth/drive']
 
+            print(f'{os.getenv("GOOGLE_PRIVATE_KEY")}')
+            print(f'{env["GOOGLE_PRIVATE_KEY"]}')
             keyfile_dict = {"type": "service_account",
                             "project_id": os.getenv("GOOGLE_PROJECT_ID"),
                             "private_key_id": os.getenv("GOOGLE_PRIVATE_KEY_ID"),
