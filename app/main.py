@@ -16,10 +16,10 @@ from src.database.db.test.cosmos.user import User as User
 from test.t_polls import TestSuite as TestSuite
 import pandas as pd
 # import functools
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
 app = FastAPI()
-load_dotenv()
+# load_dotenv()
 origins = [
     "http://localhost",
     "http://localhost:8080",
@@ -40,7 +40,7 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"Polls": "Root"}
+    return {"Polls": "Home"}
 
 # def login_required(func):
 #     @functools.wraps(func)
