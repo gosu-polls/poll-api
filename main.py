@@ -2,18 +2,20 @@ from fastapi import FastAPI, Request
 from requests import request
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
-import src.auth.auth as auth
-import src.facade as facade
-from src.database.db.test.match import Match as Match
-from src.database.db.test.country import Country as Country
-from src.database.db.poll.group import Group as Group
-from src.database.db.poll.poll import Poll as Poll
-from src.database.db.poll.point_config import Point_Config as Point_Config
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
-from src.database.db.test.cosmos.country_v2 import Country as Country_v2
-from src.database.db.test.cosmos.user import User as User
+import app.src.auth.auth as auth
+import app.src.facade as facade
+from app.src.database.db.test.match import Match as Match
+from app.src.database.db.test.country import Country as Country
+from app.src.database.db.poll.group import Group as Group
+from app.src.database.db.poll.poll import Poll as Poll
+from app.src.database.db.poll.point_config import Point_Config as Point_Config
 
-from test.t_polls import TestSuite as TestSuite
+from app.src.database.db.test.cosmos.country_v2 import Country as Country_v2
+from app.src.database.db.test.cosmos.user import User as User
+
+from app.test.t_polls import TestSuite as TestSuite
 import pandas as pd
 # import functools
 from dotenv import load_dotenv
@@ -21,12 +23,12 @@ from dotenv import load_dotenv
 app = FastAPI()
 load_dotenv()
 origins = [
-    "http://localhost",
-    "http://localhost:8080",
-    "http://localhost:8000",
-    "http://localhost:8001",
-    "http://localhost:3000",
-    "http://localhost:3001",
+    # "http://localhost",
+    # "http://localhost:8080",
+    # "http://localhost:8000",
+    # "http://localhost:8001",
+    # "http://localhost:3000",
+    # "http://localhost:3001",
     "*"
 ]
 
@@ -37,7 +39,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+# app.add_middleware(
+#     TrustedHostMiddleware, allowed_hosts=["example.com", "*.example.com"]
+# )
 @app.get("/")
 def read_root():
     return {"Polls": "Home"}

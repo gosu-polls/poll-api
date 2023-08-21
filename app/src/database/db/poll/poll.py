@@ -1,8 +1,8 @@
-from src.database.dbutil.poll_entity import Poll_Entity
-import src.database.dba.config as config
-from src.database.db.poll.user import User as User
-from src.database.db.poll.group import Group as Group
-from src.database.db.poll.group_detail import Group_Detail as Group_Detail
+from app.src.database.dbutil.poll_entity import Poll_Entity
+import app.src.database.dba.config as config
+from app.src.database.db.poll.user import User as User
+from app.src.database.db.poll.group import Group as Group
+from app.src.database.db.poll.group_detail import Group_Detail as Group_Detail
 
 class Poll(Poll_Entity):
     _df = {}

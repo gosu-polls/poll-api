@@ -1,6 +1,6 @@
-from src.database.dbutil.vote_entity import Vote_Entity
-from src.database.dbutil.poll_object import Poll_Object
-from src.database.db.poll.user import User as User
+from app.src.database.dbutil.vote_entity import Vote_Entity
+from app.src.database.dbutil.poll_object import Poll_Object
+from app.src.database.db.poll.user import User as User
 
 class Ballot(Vote_Entity):
     _df = {}

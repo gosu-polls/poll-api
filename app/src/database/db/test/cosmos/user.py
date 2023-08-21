@@ -1,4 +1,4 @@
-from src.database.dbutil.poll_entity import Poll_Entity
+from app.src.database.dbutil.poll_entity import Poll_Entity
 import os
 
 class User(Poll_Entity):

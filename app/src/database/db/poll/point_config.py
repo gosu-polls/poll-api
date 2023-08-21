@@ -1,6 +1,6 @@
-from src.database.dbutil.poll_entity import Poll_Entity
-import src.database.dba.config as config
-from src.database.db.poll.poll import Poll as Poll
+from app.src.database.dbutil.poll_entity import Poll_Entity
+import app.src.database.dba.config as config
+from app.src.database.db.poll.poll import Poll as Poll
 
 class Point_Config(Poll_Entity):
     _df = {}

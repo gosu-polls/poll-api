@@ -1,5 +1,5 @@
-from src.database.dbutil.vote_entity import Vote_Entity
-from src.database.dbutil.poll_object import Poll_Object
+from app.src.database.dbutil.vote_entity import Vote_Entity
+from app.src.database.dbutil.poll_object import Poll_Object
 
 class Vote_Detail(Vote_Entity):
     _df = {}

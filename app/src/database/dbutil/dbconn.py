@@ -1,5 +1,5 @@
-from src.database.dba.dbgoogle import GoogleSheet
-from src.database.dba.dbcosmos import CosmosDb
+from app.src.database.dba.dbgoogle import GoogleSheet
+from app.src.database.dba.dbcosmos import CosmosDb
 from threading import Lock
 mutex = Lock()
 
