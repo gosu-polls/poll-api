@@ -4,13 +4,13 @@ import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 import urllib.request
-import src.auth.auth as auth
-import src.facade as facade
-from src.database.db.test.match import Match as Match
-from src.database.db.test.country import Country as Country
-from src.database.db.poll.group import Group as Group
-from src.database.db.poll.poll import Poll as Poll
-from src.database.db.poll.point_config import Point_Config as Point_Config
+import app.src.auth.auth as auth
+import app.src.facade as facade
+from app.src.database.db.test.match import Match as Match
+from app.src.database.db.test.country import Country as Country
+from app.src.database.db.poll.group import Group as Group
+from app.src.database.db.poll.poll import Poll as Poll
+from app.src.database.db.poll.point_config import Point_Config as Point_Config
 from datetime import datetime
 # from src.database.db.test.cosmos.country_v2 import Country as Country_v2
 # from src.database.db.test.cosmos.user import User as User
