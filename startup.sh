@@ -1,2 +1,1 @@
-gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app
-# uvicorn main:app --port=3003
+gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app
