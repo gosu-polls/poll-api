@@ -1,4 +1,4 @@
-from app.src.database.dbutil.poll_entity import Poll_Entity
+from src.database.dbutil.poll_entity import Poll_Entity
 
 class Country(Poll_Entity):
     _instance = None

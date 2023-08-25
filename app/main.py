@@ -3,19 +3,19 @@ from requests import request
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+import urllib.request
+import src.auth.auth as auth
+import src.facade as facade
+from src.database.db.test.match import Match as Match
+from src.database.db.test.country import Country as Country
+from src.database.db.poll.group import Group as Group
+from src.database.db.poll.poll import Poll as Poll
+from src.database.db.poll.point_config import Point_Config as Point_Config
+from datetime import datetime
+# from src.database.db.test.cosmos.country_v2 import Country as Country_v2
+# from src.database.db.test.cosmos.user import User as User
 
-import app.src.auth.auth as auth
-import app.src.facade as facade
-from app.src.database.db.test.match import Match as Match
-from app.src.database.db.test.country import Country as Country
-from app.src.database.db.poll.group import Group as Group
-from app.src.database.db.poll.poll import Poll as Poll
-from app.src.database.db.poll.point_config import Point_Config as Point_Config
-
-from app.src.database.db.test.cosmos.country_v2 import Country as Country_v2
-from app.src.database.db.test.cosmos.user import User as User
-
-from app.test.t_polls import TestSuite as TestSuite
+from test.t_polls import TestSuite as TestSuite
 import pandas as pd
 # import functools
 from dotenv import load_dotenv
@@ -39,12 +39,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# app.add_middleware(
+# add_middleware(
 #     TrustedHostMiddleware, allowed_hosts=["example.com", "*.example.com"]
 # )
 @app.get("/")
 def read_root():
-    return {"Polls": "Home"}
+    try:
+        
+        urllib.request.urlopen("https://www.Tutorialspoint.com")
+        return {"Polls": f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} The Internet is connected."}
+    except urllib.error.URLError:
+        return {"Polls": f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} The Internet is not connected."}
+
 
 # def login_required(func):
 #     @functools.wraps(func)
@@ -341,4 +347,4 @@ def run_tests():
 if __name__ == "__main__":
     print("Launching Polls API")  
     # run_tests()
-    uvicorn.run("main:app", port=3003, host="0.0.0.0", reload=True)
+    uvicorn.run("main:app", port=3004, host="0.0.0.0", reload=True)

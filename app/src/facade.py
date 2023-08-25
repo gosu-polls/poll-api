@@ -3,17 +3,17 @@ import json
 import jwt
 from fastapi import Request
 
-from app.src.database.db.poll.group import Group as Group
-from app.src.database.db.poll.group_detail import Group_Detail as Group_Detail
-from app.src.database.db.poll.poll import Poll as Poll
-from app.src.database.db.poll.point_config import Point_Config as Point_Config
-from app.src.database.db.poll.user import User as User
+from src.database.db.poll.group import Group as Group
+from src.database.db.poll.group_detail import Group_Detail as Group_Detail
+from src.database.db.poll.poll import Poll as Poll
+from src.database.db.poll.point_config import Point_Config as Point_Config
+from src.database.db.poll.user import User as User
 
-from app.src.database.dbutil.poll_object import Poll_Object as Poll_Object
+from src.database.dbutil.poll_object import Poll_Object as Poll_Object
 
-from app.src.database.db.vote.vote import Vote as Vote
-from app.src.database.db.vote.vote_detail import Vote_Detail as Vote_Detail
-from app.src.database.db.vote.ballot import Ballot as Ballot 
+from src.database.db.vote.vote import Vote as Vote
+from src.database.db.vote.vote_detail import Vote_Detail as Vote_Detail
+from src.database.db.vote.ballot import Ballot as Ballot 
 
 import uuid
 from datetime import datetime, timedelta

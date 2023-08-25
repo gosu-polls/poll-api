@@ -31,23 +31,20 @@ class GoogleSheet:
                             "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
                             "client_x509_cert_url": os.getenv("GOOGLE_CLIENT_X509_CERT_URL")
                         }
-
-            # keyfile_dict = {"type": "service_account",
-            #                 "project_id": env["GOOGLE_PROJECT_ID"],
-            #                 "private_key_id": env["GOOGLE_PRIVATE_KEY_ID"],
-            #                 "private_key": env["GOOGLE_PRIVATE_KEY"],
-            #                 "client_email": env["GOOGLE_CLIENT_EMAIL"],
-            #                 "client_id": env["GOOGLE_CLIENT_ID"],
-            #                 "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            #                 "token_uri": "https://oauth2.googleapis.com/token",
-            #                 "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            #                 "client_x509_cert_url": env["GOOGLE_CLIENT_X509_CERT_URL"]
-            #             }
-            credentials = ServiceAccountCredentials.from_json_keyfile_dict(keyfile_dict, 
+            for k in keyfile_dict:
+                print(f'{k} -> {keyfile_dict[k]}')
+            credentials = None
+            try:
+                credentials = ServiceAccountCredentials.from_json_keyfile_dict(keyfile_dict, 
                                                                        scopes=scopes)
-
+            except Exception as err:
+                print(f'Erorr while running ServiceAccountCredentials.from_json_keyfile_dict {str(err)}')
             
-            cls._conn = gspread.authorize(credentials) 
+            print(f'The credentials are {credentials}')
+            try:
+                cls._conn = gspread.authorize(credentials) 
+            except Exception as err:
+                print(f'Erorr while running gspread.authorize {str(err)}')
         return cls._instance
     
     @classmethod
@@ -56,14 +53,25 @@ class GoogleSheet:
     def ReadData(cls, identifier: dict = {}, filters: dict = {}) -> pd.DataFrame:
 
         try:
-            spreadsheet = cls._conn.open_by_key(identifier['db_name'])
-            worksheet = spreadsheet.worksheet(identifier['table_name'] if 'table_name' in identifier else 'Sheet1')
+            spreadsheet = None
+            try:
+                spreadsheet = cls._conn.open_by_key(identifier['db_name'])
+            except Exception as err:
+                print(f'Error while cls._conn.open_by_key is performed {str(err)}')
+
+            worksheet = None
+            try:
+                worksheet = spreadsheet.worksheet(identifier['table_name'] if 'table_name' in identifier else 'Sheet1')
+            except Exception as err:
+                print(f'Error while spreadsheet.worksheet is performed {str(err)}')
+                
             df = pd.DataFrame(worksheet.get_all_records())
             for key in filters:
                 if key in df.columns:
                     df = df[df[key] == filters[key]]
             return df
-        except:
+        except Exception as err:
+            print(f'Error while ReadData is performed {str(err)}')
             raise
 
 

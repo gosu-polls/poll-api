@@ -1,4 +1,4 @@
-from app.src.database.dbutil.poll_entity import Poll_Entity
+from src.database.dbutil.poll_entity import Poll_Entity
 
 class Vote_Entity(Poll_Entity):
     _pollInstanceMap = {}

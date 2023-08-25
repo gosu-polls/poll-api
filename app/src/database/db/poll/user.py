@@ -1,5 +1,5 @@
-from app.src.database.dbutil.poll_entity import Poll_Entity
-import app.src.database.dba.config as config
+from src.database.dbutil.poll_entity import Poll_Entity
+import src.database.dba.config as config
 from fastapi import Request
 import json
 import jwt

@@ -1,4 +1,4 @@
-from app.src.database.dbutil.dbconn import DBConn
+from src.database.dbutil.dbconn import DBConn
 import pandas as pd
 from threading import Lock
 read_mutex = Lock()
