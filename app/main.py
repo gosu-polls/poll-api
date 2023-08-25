@@ -12,8 +12,8 @@ from app.src.database.db.poll.group import Group as Group
 from app.src.database.db.poll.poll import Poll as Poll
 from app.src.database.db.poll.point_config import Point_Config as Point_Config
 from datetime import datetime
-# from src.database.db.test.cosmos.country_v2 import Country as Country_v2
-# from src.database.db.test.cosmos.user import User as User
+# from app.src.database.db.test.cosmos.country_v2 import Country as Country_v2
+# from app.src.database.db.test.cosmos.user import User as User
 
 from test.t_polls import TestSuite as TestSuite
 import pandas as pd
@@ -83,7 +83,7 @@ def read_root():
 # def get_active_poll(request : Request) -> dict:
 #     my_header = request.headers.get('Token')
 #     header = json.loads(my_header)
-#     return src.polls.get_active_poll()
+#     return app.src.polls.get_active_poll()
 
 # @app.get("/users")
 # def get_users() -> dict:
