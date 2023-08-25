@@ -15,7 +15,7 @@ from datetime import datetime
 # from app.src.database.db.test.cosmos.country_v2 import Country as Country_v2
 # from app.src.database.db.test.cosmos.user import User as User
 
-from test.t_polls import TestSuite as TestSuite
+from app.test.t_polls import TestSuite as TestSuite
 import pandas as pd
 # import functools
 from dotenv import load_dotenv
