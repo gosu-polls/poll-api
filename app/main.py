@@ -29,6 +29,7 @@ origins = [
     # "http://localhost:8001",
     # "http://localhost:3000",
     # "http://localhost:3001",
+    "https://polls-api.azurewebsites.net"
     "*"
 ]
 
