@@ -29,7 +29,9 @@ origins = [
     # "http://localhost:8001",
     "http://localhost:3000",
     # "http://localhost:3001",
-    "polls-by-gosu.azurewebsites.net"
+    "https://polls-by-gosu.azurewebsites.net",
+    "https://polls-by-gosu.azurewebsites.net/login",
+    "https://polls-by-gosu.azurewebsites.net/*",
     "*"
 ]
 
