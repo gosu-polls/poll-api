@@ -53,12 +53,8 @@ We need the following env variables to be set. But they are currently have sensi
 `GOOGLE_CLIENT_ID="[ask admin]"`
 `GOOGLE_CLIENT_X509_CERT_URL="[ask admin]"`
 
-`COSMOSDB_HOST="[ask admin]"`
-`COSMOSDB_MASTER_KEY="[ask admin]"`
-`COSMOSDB_POLLS_DB_ID="polls-db"`
-`COSMOSDB_USER_CONTAINER_ID="[ask admin]"`
-`COSMOSDB_CWC_CONTAINER_ID="[ask admin]"`
-
+Also Set
+`export PYTHONPATH=$project_path/poll-api/`
 
 # Run the API
 Run the API using the following command

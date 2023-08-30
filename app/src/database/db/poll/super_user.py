@@ -1,12 +1,11 @@
 from app.src.database.dbutil.poll_entity import Poll_Entity
 import app.src.database.dba.config as config
-from fastapi import Request
-import json
-import jwt
+from app.src.database.db.poll.user import User as User
 
-class User(Poll_Entity):
+class Super_User(Poll_Entity):
     _df = {}
     _entity_identifier = {}
+
     def __new__(cls):
         try:
             # if cls._instance is None:
@@ -25,18 +24,9 @@ class User(Poll_Entity):
             return None
 
     @classmethod
-    def GetUser(cls, request: Request) -> dict:
-        header = json.loads(request.headers.get('Token'))
-        user = None
-        if header != None:
-            
-            email = jwt.decode(header['jwt'], 'secret', 'HS256')['email']
-
-            users = cls.GetData()
-            # print(f'user.GetUser users {users}')
-
-            userList = [u for u in users if u['email'] == email]
-            # print(f'user.GetUser userList {userList}')
-            user = userList[0]
-
-        return user
+    def IsSuperUser(cls, u: User) -> bool:
+        if u != None:
+            su = Super_User().GetFilteredData({'user_id': u['user_id']})
+            if len(su) == 1:
+                return True
+        return False

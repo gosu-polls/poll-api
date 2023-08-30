@@ -19,7 +19,7 @@ def handle_user(user : dict) -> dict:
     users = User().GetData()
     if (userData['email'] in [u['email'] for u in users]):
         set_clause = {'name': userData['name'],
-                      'initials': userData['given_name'][0] + userData['family_name'][0] if len(userData['family_name']) > 0 else userData['given_name'][1],
+                      'initials': (userData['given_name'][0] + userData['family_name'][0] if len(userData['family_name']) > 0 else userData['given_name'][1]).upper(),
                       'picture': userData['picture'],
                       'last_logged_on': datetime.utcnow().strftime("%Y-%m-%d %H%M%S")}
         where_clause = {'email': userData['email']}

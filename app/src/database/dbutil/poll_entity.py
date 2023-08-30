@@ -66,7 +66,6 @@ class Poll_Entity:
                 
                 cls._updateCache(cls._entity_identifier[cls._poll_id]['key'])
 
-
     @classmethod
     def GetData(cls) -> list:
         try:
@@ -218,7 +217,9 @@ class Poll_Entity:
     def ResetCache(cls):
         try:
             cls._cache[cls._entity_identifier[cls._poll_id]['key']] = False
-            return f"Cache Cleared for [{cls._entity_identifier[cls._poll_id]['key']}]"
+            cls._readData()
+            # cls._cache = {}
+            # return f"Cache Cleared for [{cls._entity_identifier[cls._poll_id]['key']}]"
         except Exception as err:
             return {"exception": err}
 

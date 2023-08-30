@@ -8,7 +8,9 @@ from app.src.database.db.poll.group_detail import Group_Detail as Group_Detail
 from app.src.database.db.poll.poll import Poll as Poll
 from app.src.database.db.poll.point_config import Point_Config as Point_Config
 from app.src.database.db.poll.user import User as User
+from app.src.database.db.poll.super_user import Super_User as Super_User
 
+from app.src.database.dbutil.poll_entity import Poll_Entity as Poll_Entity
 from app.src.database.dbutil.poll_object import Poll_Object as Poll_Object
 
 from app.src.database.db.vote.vote import Vote as Vote
@@ -420,7 +422,7 @@ def calc_points(request: Request, body: dict) -> dict:
             Ballot(po).UpdateData(block_data_df=ballot_data_df)
     return {'data': data}
 
-def get_group_points(request: Request, body: dict) -> dict:
+def get_group_points(request: Request) -> dict:
     u = User().GetUser(request)
     data = []
     if u != None:
@@ -428,8 +430,11 @@ def get_group_points(request: Request, body: dict) -> dict:
         # Get group wise split for this poll
         # Assume the user is part of two group viz., office, friends.
         # The output must be like this:
-        [
-            {
+        data = [
+            {'poll_id' : 1,
+            'results' :
+            [{
+                'group_id' : 1,
                 'group_name': 'office',
                 'points_data': [
                                     {'user': {'name': 'Kiran Gosu', 'Initials' : 'KG', 'Picture': 'url'},
@@ -460,6 +465,7 @@ def get_group_points(request: Request, body: dict) -> dict:
             },
 
             {
+                'group_id' : 2,
                 'group_name': 'friends',
                 'points_data': [
                                     {'user': {'name': 'Kiran Gosu', 'Initials' : 'KG', 'Picture': 'url'},
@@ -487,7 +493,29 @@ def get_group_points(request: Request, body: dict) -> dict:
                                                 }]
                                     }
                 ]
+            }]},
+            {
+                'poll_id': 2,
+                'results' : [
+                    {
+                        'group_id' : 3,
+                        'group_name': "f1",
+                        'points_data' : [
+                                    {'user': {'name': 'Kiran Gosu', 'Initials' : 'KG', 'Picture': 'url'},
+                                    'consolidated_points': -1,
+                                    'split': [{
+                                                    'ARG vs BRA': -1
+                                                }]
+                                    },
+                                    {'user': {'name': 'Sivapragasam Muthu', 'Initials' : 'SM', 'Picture': 'url'},
+                                    'consolidated_points': 2,
+                                    'split': [{
+                                                    'ARG vs BRA': 2
+                                                }]
+                                    },
+                        ]
+                    }
+                ]
             }
         ]
-        pass
     return {'data': data}

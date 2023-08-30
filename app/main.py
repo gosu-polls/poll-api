@@ -6,6 +6,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 import urllib.request
 import app.src.auth.auth as auth
 import app.src.facade as facade
+import app.src.sudo as sudo
 from app.src.database.db.test.match import Match as Match
 from app.src.database.db.test.country import Country as Country
 from app.src.database.db.poll.group import Group as Group
@@ -203,9 +204,50 @@ def calc_points(request: Request, body: dict):
     return data
 
 @app.get("/grouppoints")
-def get_group_points(request: Request, body: dict) -> dict:
-    data = facade.get_group_points(request, body)
+def get_group_points(request: Request) -> dict:
+    data = facade.get_group_points(request)
     return data
+
+@app.get("/superuser")
+def get_super_user(request: Request) -> dict:
+    data = sudo.get_super_user(request)
+    return data
+
+@app.put("/suresetcache")
+def reset_cache(request: Request) -> dict:
+    data = sudo.reset_cache(request)
+    return data
+
+@app.get("/sugetusers")
+def get_su_users(request: Request) -> dict:
+    data = sudo.get_users(request)
+    return data
+
+@app.get("/sugetgroups")
+def get_su_groups(request: Request) -> dict:
+    data = sudo.get_groups(request)
+    return data
+
+@app.get("/sugetgroupdetail")
+def get_su_group_detail(request: Request) -> dict:
+    data = sudo.get_group_detail(request)
+    return data
+
+@app.get("/sugetvote/{poll_id}")
+def get_su_vote(request: Request, poll_id: int) -> dict:
+    data = sudo.get_vote(request, poll_id)
+    return data
+
+@app.get("/sugetvotedetail/{poll_id}")
+def get_su_vote_detail(request: Request, poll_id: int) -> dict:
+    data = sudo.get_vote_detail(request, poll_id)
+    return data
+
+@app.get("/sugetballot/{poll_id}")
+def get_su_ballot(request: Request, poll_id: int) -> dict:
+    data = sudo.get_ballot(request, poll_id)
+    return data
+
 
 def run_tests():
     # TestSuite().test_get_poll(1)
