@@ -45,10 +45,10 @@ class Poll_Entity:
 
     @classmethod
     def _isCached(cls) -> bool:
-        if cls._entity_identifier[cls._poll_id]['key'] in cls._cache:
-            return cls._cache[cls._entity_identifier[cls._poll_id]['key']]
-        else:
+        if cls._entity_identifier[cls._poll_id]['key'] not in cls._cache or len(cls._df[cls._poll_id].index) == 0 :
             return False
+        else:
+            return cls._cache[cls._entity_identifier[cls._poll_id]['key']]
 
     @classmethod
     def _readData(cls):
