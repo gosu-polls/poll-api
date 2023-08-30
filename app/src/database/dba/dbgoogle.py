@@ -40,7 +40,7 @@ class GoogleSheet:
             except Exception as err:
                 print(f'Erorr while running ServiceAccountCredentials.from_json_keyfile_dict {str(err)}')
             
-            print(f'The credentials are {credentials}')
+            # print(f'The credentials are {credentials}')
             try:
                 cls._conn = gspread.authorize(credentials) 
             except Exception as err:

@@ -177,6 +177,7 @@ def get_active_poll(u : User) -> dict:
             ballot = Ballot(po).GetUserVoteDetail(u, v['vote_id'])
             # print(f'get_active_poll: ballot for vote {v} is {ballot}')
             # v['selected_vote_detail_id'] = -1 # this is just a hack
+            v['is_open'] = 'Y' if v['is_open'] in ['', 'Y'] else 'N'
             v['selected_vote_detail_id'] = ballot['vote_detail_id'] if 'vote_detail_id' in ballot else -1
             # v['submitted_right_answer'] = vote_detail
             vd = [vd for vd in vote_detail if vd['vote_id'] == v['vote_id']]
@@ -190,6 +191,7 @@ def get_active_poll(u : User) -> dict:
     
     # print(f'get_active_poll: Participating Polls data is {data}')
     # pprint.PrettyPrinter(width=20).pprint(f'get_active_poll: Participating Polls data is {data}')
+    # print(data)
     return data
 
 def get_poll_history_v2(request: Request) -> dict:

@@ -254,7 +254,7 @@ def run_tests():
     # TestSuite().test_vote_detail()
     logged_user_id = 1
     groups = [ {'group_id' : 1, 'group_name': 'apple', 'admin_user_id': 1},
-               {'group_id' : 2, 'group_name': 'androif', 'admin_user_id': 2}
+               {'group_id' : 2, 'group_name': 'android', 'admin_user_id': 2}
             ]
     
     # data = [g for g in groups]
