@@ -178,6 +178,11 @@ def get_active_poll(request: Request) -> dict:
     data = facade.get_vote_section(request)
     return data
 
+@app.get("/votehistory")
+def get_historic_polls(request: Request) -> dict:
+    data = facade.get_historic_polls(request)
+    return data
+
 @app.post("/savevote")
 def save_vote(request: Request, body: dict) -> dict:
     data = facade.save_vote(request, body)

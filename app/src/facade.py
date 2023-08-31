@@ -146,10 +146,17 @@ def get_vote_section(request: Request) -> dict:
     data = []
     u = User().GetUser(request)
     if u != None:
-        data = get_active_poll(u)
+        data = get_active_poll(u, 'a')
     return {'data': data}
 
-def get_active_poll(u : User) -> dict:
+def get_historic_polls(request: Request) -> dict:
+    data = []
+    u = User().GetUser(request)
+    if u != None:
+        data = get_active_poll(u, 'h')
+    return {'data': data}
+
+def get_active_poll(u : User, mode : str = 'a') -> dict:
     data = []
     participating_polls = Poll().GetParticipatingPolls(u)
 
@@ -158,11 +165,18 @@ def get_active_poll(u : User) -> dict:
         # print(f'get_active_poll: poll object of {pp} is {po.poll_name}.{po.poll_id}')
         vote = Vote(po).GetData()
         # print(f'get_active_poll all votes is {vote}')
-        active_votes = [v for v in vote if (((datetime.utcnow() - timedelta(minutes = 10) if len(v['valid_from'].strip()) == 0 else datetime.strptime(v['valid_from'], '%Y-%m-%d %H%M%S'))
-                                            <= datetime.utcnow() <= 
-                                            (datetime.utcnow() + timedelta(minutes = 10) if len(v['valid_to'].strip()) == 0 else datetime.strptime(v['valid_to'], '%Y-%m-%d %H%M%S')))) 
-                                            # and (Vote(po).IsVoteActive(request, v['vote_id']))
-                    ]
+        # print(mode)
+        if mode == 'a':
+            active_votes = [v for v in vote if (((datetime.utcnow() - timedelta(minutes = 10) if len(v['valid_from'].strip()) == 0 else datetime.strptime(v['valid_from'], '%Y-%m-%d %H%M%S'))
+                                                <= datetime.utcnow() <= 
+                                                (datetime.utcnow() + timedelta(minutes = 10) if len(v['valid_to'].strip()) == 0 else datetime.strptime(v['valid_to'], '%Y-%m-%d %H%M%S')))) 
+                                                # and (Vote(po).IsVoteActive(request, v['vote_id']))
+                        ]
+        else:
+            active_votes = [v for v in vote if (datetime.utcnow() > datetime.strptime(v['valid_to'], '%Y-%m-%d %H%M%S')) 
+                                                # and (Vote(po).IsVoteActive(request, v['vote_id']))
+                        ]
+
         # print(f'get_active_poll active_votes is {active_votes}')
         vote_detail = Vote_Detail(po).GetData()
         # ballot = Ballot(po).GetUserBallot(request)
@@ -409,18 +423,20 @@ def calc_points(request: Request, body: dict) -> dict:
     if u != None:
         if Poll().IsUserAdmin(u, body['poll_id']):
             point_config_data = Point_Config().GetPointsConfigForPoll(poll_id=body['poll_id'])
-
             po = Poll_Object(Poll().GetPollObject(body['poll_id']))
             ballot = Ballot(po).GetData()
             vote_detail = Vote_Detail(po).GetData()
             vote = Vote(po).GetData()
             ballot_data = [dict(b, points = point_config_data['right'] if vd['is_right'] == 'Y' else point_config_data['wrong'] ) for b in ballot for
                             vd in vote_detail if vd['vote_id'] in 
-                                [v['vote_id'] for v in vote if v['is_open'] == 'N']
+                                [v['vote_id'] for v in vote if (v['is_open'] == 'N' 
+                                                                or (datetime.utcnow() > datetime.strptime(v['valid_to'], '%Y-%m-%d %H%M%S') + timedelta(hours = 8))
+                                                                )]
                                     if b['vote_detail_id'] == vd['vote_detail_id']            
                           ]
             ballot_data_df = pd.DataFrame(ballot_data)
             ballot_data_df['updated_at'] = datetime.utcnow().strftime("%Y-%m-%d %H%M%S")
+            # print(len(ballot_data_df.index))
             Ballot(po).UpdateData(block_data_df=ballot_data_df)
     return {'data': data}
 
