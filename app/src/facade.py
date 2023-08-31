@@ -90,7 +90,7 @@ def join_group(request: Request, body: dict) -> dict:
                                     'email': u['email'],
                                     'joined_on': datetime.utcnow().strftime("%Y-%m-%d %H%M%S")
                 }
-                Group_Detail.AddData(new_group_detail)
+                Group_Detail().AddData(new_group_detail)
                 data.append('User added to the Group')
     return {'data': data}
 
